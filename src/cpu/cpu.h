@@ -110,12 +110,12 @@ public:
 	/// sets the zero and negative flags as appropriate.
 	void tay(Addressing addr_mode);
 
-	/// TXA - Transfer Accumulator to X
+	/// TXA - Transfer X to Accumulator
 	/// Copies the current contents of the X register into the accumulator and
 	/// sets the zero and negative flags as appropriate.
 	void txa(Addressing addr_mode);
 
-	/// TYA - Transfer Accumulator to X
+	/// TYA - Transfer Y to Accumulator
 	/// Copies the current contents of the Y register into the accumulator and
 	/// sets the zero and negative flags as appropriate.
 	void tya(Addressing addr_mode);
@@ -213,32 +213,32 @@ public:
 	/// INC - Increment a memory location
 	/// Adds one to the value held at a specified memory location setting the
 	/// zero and negative flags as appropriate.
-	void inc(const uint16_t &addr);
+	void inc(Addressing addr_mode);
 
 	/// INX - Increment the X register
 	/// Adds one to the X register setting the zero and negative flags as
 	/// appropriate.
-	void inx();
+	void inx(Addressing addr_mode);
 
 	/// INY - Increment the Y register
 	/// Adds one to the Y register setting the zero and negative flags as
 	/// appropriate.
-	void iny();
+	void iny(Addressing addr_mode);
 
 	/// DEC - Decrement a memory location
 	/// Subtracts one from the value held at a specified memory location
 	/// setting the zero and negative flags as appropriate.
-	void dec(const uint16_t &addr);
+	void dec(Addressing addr_mode);
 
 	/// DEX - Decrement the X register
 	/// Subtracts one from the X register setting the zero and negative flags
 	/// as appropriate.
-	void dex();
+	void dex(Addressing addr_mode);
 
 	/// DEY - Decrement the Y register
 	/// Subtracts one from the Y register setting the zero and negative flags
 	/// as appropriate.
-	void dey();
+	void dey(Addressing addr_mode);
 
 	/**********
 	 * Shifts *
@@ -249,43 +249,43 @@ public:
 	/// carry flag. The effect of this operation is to multiply the memory
 	/// contents by 2 (ignoring 2's complement considerations), setting the
 	/// carry if the result will not fit in 8 bits.
-	void asl(uint8_t &val);
+	void asl(Addressing addr_mode);
 
 	/// LSR - Logical Shift Right
 	/// Each of the bits in A or M is shift one place to the right. The bit
 	/// that was in bit 0 is shifted into the carry flag. Bit 7 is set to zero.
-	void lsr(uint8_t &val);
+	void lsr(Addressing addr_mode);
 
 	/// ROL - Rotate Left
 	/// Move each of the bits in either A or M one place to the left. Bit 0 is
 	/// filled with the current value of the carry flag whilst the old bit 7
 	/// becomes the new carry flag value.
-	void rol(uint8_t &val);
+	void rol(Addressing addr_mode);
 
 	/// ROR - Rotate Right
 	/// Move each of the bits in either A or M one place to the right. Bit 7 is
 	/// filled with the current value of the carry flag whilst the old bit 0
 	/// becomes the new carry flag value.
-	void ror(uint8_t &val);
+	void ror(Addressing addr_mode);
 
 	/*****************
 	 * Jumps & Calls *
 	 *****************/
 	/// JMP - Jump to another location
 	/// Sets the program counter to the address specified by the operand.
-	void jmp(const uint16_t &addr);
+	void jmp(Addressing addr_mode);
 
 	/// JSR - Jump to a subroutine
 	/// The JSR instruction pushes the address (minus one) of the return point
 	/// on to the stack and then sets the program counter to the target memory
 	/// address.
-	void jsr(const uint16_t &addr);
+	void jsr(Addressing addr_mode);
 
 	/// RTS - Return from subroutine
 	/// The RTS instruction is used at the end of a subroutine to return to the
 	/// calling routine. It pulls the program counter (minus one) from the
 	/// stack.
-	void rts();
+	void rts(Addressing addr_mode);
 
 	/************
 	 * Branches *
@@ -293,74 +293,74 @@ public:
 	/// BCC - Branch if carry flag clear
 	/// If the carry flag is clear then add the relative displacement to the
 	/// program counter to cause a branch to a new location.
-	void bcc(const int8_t &offset);
+	void bcc(Addressing addr_mode);
 
 	/// BCS - Branch if carry flag set
 	/// If the carry flag is set then add the offset displacement to the
 	/// program counter to cause a branch to a new location.
-	void bcs(const int8_t &offset);
+	void bcs(Addressing addr_mode);
 
 	/// BEQ - Branch if zero flag set
 	/// If the zero flag is set then add the offset displacement to the
 	/// program counter to cause a branch to a new location.
-	void beq(const int8_t &offset);
+	void beq(Addressing addr_mode);
 
 	/// BMI - Branch if negative flag set
 	/// If the negative flag is set then add the offset displacement to the
 	/// program counter to cause a branch to a new location.
-	void bmi(const int8_t &offset);
+	void bmi(Addressing addr_mode);
 	
 	/// BNE - Branch if zero flag clear
 	/// If the zero flag is clear then add the offset displacement to the
 	/// program counter to cause a branch to a new location.
-	void bne(const int8_t &offset);
+	void bne(Addressing addr_mode);
 
 	/// BPL - Branch if negative flag clear
 	/// If the negative flag is clear then add the offset displacement to the
 	/// program counter to cause a branch to a new location.
-	void bpl(const int8_t &offset);
+	void bpl(Addressing addr_mode);
 
 	/// BVC - Branch if overflow flag clear
 	/// If the overflow flag is clear then add the offset displacement to the
 	/// program counter to cause a branch to a new location.
-	void bcv(const int8_t &offset);
+	void bvc(Addressing addr_mode);
 
 	/// BVS - Branch if overflow flag set
 	/// If the overflow flag is set then add the offset displacement to the
 	/// program counter to cause a branch to a new location.
-	void bvs(const int8_t &offset);
+	void bvs(Addressing addr_mode);
 
 	/***********************
 	 * Status Flag Changes *
 	 ***********************/
 	/// CLC - Clear carry flag
 	/// Set the carry flag to zero.
-	void clc();
+	void clc(Addressing addr_mode);
 
 	/// CLD - Clear decimal mode flag
 	/// Sets the decimal mode flag to zero.
-	void cld();
+	void cld(Addressing addr_mode);
 
 	/// CLI - Clear interrupt disable flag
 	/// Clears the interrupt disable flag allowing normal interrupt requests to
 	/// be serviced.
-	void cli();
+	void cli(Addressing addr_mode);
 
 	/// CLV - Clear overflow flag
 	/// Clears the overflow flag.
-	void clv();
+	void clv(Addressing addr_mode);
 
 	/// SEC - Set carry flag
 	/// Set the carry flag to one.
-	void sec();
+	void sec(Addressing addr_mode);
 
 	/// SED - Set decimal mode flag
 	/// Set the decimal mode flag to one.
-	void sed();
+	void sed(Addressing addr_mode);
 
 	/// SEI - Set interrupt disable flag
 	/// Set the interrupt disable flag to one.
-	void sei();
+	void sei(Addressing addr_mode);
 
 	/********************
 	 * System Functions *
@@ -416,7 +416,7 @@ private:
 	/// Pops data from stack and returns it.
 	uint8_t stack_pop();
 
-	/// Set zero flag if given register == 0.
+	/// Set zero flag if given value == 0.
 	void set_zero_if(uint8_t val);
 	/// Set negative flag if bit 7 of val is set.
 	void set_negative_if(uint8_t val);
@@ -431,21 +431,21 @@ private:
 	/// Get data from the memory address that is in program_counter,
 	/// then increments the program_counter.
 	uint8_t fetch();
+	/// Uses Addressing mode to get address that can be used to get a value from memory.
+	uint16_t fetch_with(Addressing addr_mode);
 
 	/// Addressing mode functions.
 	/// Returns the value at the address that it computes.
-	//uint8_t implicit();
-	//uint8_t accum();
-	uint8_t immediate();
-	uint8_t zero_page();
-	uint8_t zero_page_x();
-	uint8_t zero_page_y();
+	uint16_t immediate();
+	uint16_t zero_page();
+	uint16_t zero_page_x();
+	uint16_t zero_page_y();
 	int8_t relative();
-	uint8_t absolute();
-	uint8_t absolute_x();
-	uint8_t absolute_y();
+	uint16_t absolute();
+	uint16_t absolute_x();
+	uint16_t absolute_y();
 	uint16_t indirect();
-	uint8_t indexed_indirect();
-	uint8_t indirect_indexed();
+	uint16_t indexed_indirect();
+	uint16_t indirect_indexed();
 };
 

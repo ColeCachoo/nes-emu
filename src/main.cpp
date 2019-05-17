@@ -5,10 +5,9 @@
 
 using namespace std;
 
-void tests();
+// void tests();
 
-int main()
-{
+int main() {
 	cout << "Hello nes-emu." << endl;
 
 	RAM ram;
@@ -25,6 +24,7 @@ int main()
 	return 0;
 }
 
+/*
 void tests() {
 	CPU cpu;
 
@@ -70,3 +70,4 @@ void tests() {
 		cout << "CLI ................ Failed\n";
 	}
 }
+*/

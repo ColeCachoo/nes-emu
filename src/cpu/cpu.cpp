@@ -16,17 +16,17 @@ CPU::CPU(RAM *ram) {
 
 	this->ram = ram;
 
-	// TODO: Phase out.
-	memory = vector<uint8_t>(64 * 1024);
-
 	data_bus();
 	lda(Addressing::ZeroPageX);
 
 	program_counter = 0x1234;
+	ram->write(0x78, program_counter + 1);
+	ram->write(0x56, program_counter + 2);
 	printf("%x%x\n", get_pch(), get_pcl());
-	jsr(0x5678);
+	fetch();
+	jsr(Addressing::Absolute);
 	printf("%x\n", program_counter);
-	rts();
+	rts(Addressing::Implicit);
 	printf("%x\n", program_counter);
 	printf("%x\n", 0x80 + 0x0f);
 
@@ -34,13 +34,28 @@ CPU::CPU(RAM *ram) {
 	puts("Testing adc...");
 	program_counter = 0x8000;
 	cpu_status.reset();
-	//cpu_status.set(0);
-	accumulator = -66;
-	ram->write(-65, 0x8000);
+	cpu_status.set(0);
+	accumulator = 13;
+	ram->write(211, 0x8000);
 	adc(Addressing::Immediate);
-	cout << int(int8_t(accumulator)) << endl;
+	cout << int(uint8_t(accumulator)) << endl;
 	cout << cpu_status << endl;
 	puts("Done.");
+
+	// Tests SBC.
+	// puts("Testing sbc...");
+	// program_counter = 0x8000;
+	// cpu_status.reset();
+	// //cpu_status.set(0);
+	// sec();
+	// accumulator = 5;
+	// ram->write(6, 0x8000);
+	// // adc(Addressing::Immediate);
+	// sbc(Addressing::Immediate);
+	// cout << int(int8_t(accumulator)) << endl;
+	// cout << cpu_status << endl;
+	// puts("Done.");
+	
 }
 
 void 
@@ -66,21 +81,62 @@ CPU::set_zero_if(uint8_t val) {
 
 void 
 CPU::set_negative_if(uint8_t val) {
-	bitset<8> v = val;
-	if (v[7] == 1) {
+	if (val & 0x80) {
 		cpu_status.set(Negative);
 	} else {
 		cpu_status.reset(Negative);
 	}
 }
 
-// TODO: See JMP in the reference. The 6502 doesn't correctly fetch
-// address if it falls on a page boundry?
 uint8_t 
 CPU::fetch() {
 	uint8_t val = ram->read(program_counter);
 	program_counter++;
 	return val;
+}
+
+uint16_t 
+CPU::fetch_with(Addressing addr_mode) {
+	uint16_t addr = 0;
+	switch (addr_mode) {
+	case Addressing::Immediate :
+		addr = immediate();
+		break;
+	case Addressing::ZeroPage :
+		addr = zero_page();
+		break;
+	case Addressing::ZeroPageX :
+		addr = zero_page_x();
+		break;
+	case Addressing::ZeroPageY :
+		addr = zero_page_y();
+		break;
+	case Addressing::Relative :
+		addr = relative();
+		break;
+	case Addressing::Absolute :
+		addr = absolute();
+		break;
+	case Addressing::AbsoluteX :
+		addr = absolute_x();
+		break;
+	case Addressing::AbsoluteY :
+		addr = absolute_y();
+		break;
+	case Addressing::Indirect :
+		addr = absolute_y();
+		break;
+	case Addressing::IndexedIndirect :
+		addr = indexed_indirect();
+		break;
+	case Addressing::IndirectIndexed :
+		addr = indirect_indexed();
+		break;
+	default :
+		cerr << "Unexpected addressing mode in fetch_with: " << int(addr_mode) << endl;
+	}
+
+	return addr;
 }
 
 void 
@@ -173,6 +229,120 @@ CPU::data_bus() {
 	// BIT opcodes.
 	opcodes.insert({ 0x24, OpCode{ Addressing::ZeroPage,		2, 3, bind(&CPU::bit, this, _1) } });
 	opcodes.insert({ 0x2c, OpCode{ Addressing::Absolute,		3, 4, bind(&CPU::bit, this, _1) } });
+	// ADC opcodes.
+	opcodes.insert({ 0x69, OpCode{ Addressing::Immediate,		2, 2, bind(&CPU::adc, this, _1) } });
+	opcodes.insert({ 0x65, OpCode{ Addressing::ZeroPage,		2, 3, bind(&CPU::adc, this, _1) } });
+	opcodes.insert({ 0x75, OpCode{ Addressing::ZeroPageX,		2, 4, bind(&CPU::adc, this, _1) } });
+	opcodes.insert({ 0x6d, OpCode{ Addressing::Absolute,		3, 4, bind(&CPU::adc, this, _1) } });
+	opcodes.insert({ 0x7d, OpCode{ Addressing::AbsoluteX,		3, 4, bind(&CPU::adc, this, _1) } });
+	opcodes.insert({ 0x79, OpCode{ Addressing::AbsoluteY,		3, 4, bind(&CPU::adc, this, _1) } });
+	opcodes.insert({ 0x61, OpCode{ Addressing::IndexedIndirect, 2, 6, bind(&CPU::adc, this, _1) } });
+	opcodes.insert({ 0x71, OpCode{ Addressing::IndirectIndexed, 2, 5, bind(&CPU::adc, this, _1) } });
+	// SBC opcodes.
+	opcodes.insert({ 0xe9, OpCode{ Addressing::Immediate,		2, 2, bind(&CPU::sbc, this, _1) } });
+	opcodes.insert({ 0xe5, OpCode{ Addressing::ZeroPage,		2, 3, bind(&CPU::sbc, this, _1) } });
+	opcodes.insert({ 0xf5, OpCode{ Addressing::ZeroPageX,		2, 4, bind(&CPU::sbc, this, _1) } });
+	opcodes.insert({ 0xed, OpCode{ Addressing::Absolute,		3, 4, bind(&CPU::sbc, this, _1) } });
+	opcodes.insert({ 0xfd, OpCode{ Addressing::AbsoluteX,		3, 4, bind(&CPU::sbc, this, _1) } });
+	opcodes.insert({ 0xf9, OpCode{ Addressing::AbsoluteY,		3, 4, bind(&CPU::sbc, this, _1) } });
+	opcodes.insert({ 0xe1, OpCode{ Addressing::IndexedIndirect, 2, 6, bind(&CPU::sbc, this, _1) } });
+	opcodes.insert({ 0xf1, OpCode{ Addressing::IndirectIndexed, 2, 5, bind(&CPU::sbc, this, _1) } });
+	// CMP opcodes.
+	opcodes.insert({ 0xc9, OpCode{ Addressing::Immediate,		2, 2, bind(&CPU::cmp, this, _1) } });
+	opcodes.insert({ 0xc5, OpCode{ Addressing::ZeroPage,		2, 3, bind(&CPU::cmp, this, _1) } });
+	opcodes.insert({ 0xd5, OpCode{ Addressing::ZeroPageX,		2, 4, bind(&CPU::cmp, this, _1) } });
+	opcodes.insert({ 0xcd, OpCode{ Addressing::Absolute,		3, 4, bind(&CPU::cmp, this, _1) } });
+	opcodes.insert({ 0xdd, OpCode{ Addressing::AbsoluteX,		3, 4, bind(&CPU::cmp, this, _1) } });
+	opcodes.insert({ 0xd9, OpCode{ Addressing::AbsoluteY,		3, 4, bind(&CPU::cmp, this, _1) } });
+	opcodes.insert({ 0xc1, OpCode{ Addressing::IndexedIndirect, 2, 6, bind(&CPU::cmp, this, _1) } });
+	opcodes.insert({ 0xd1, OpCode{ Addressing::IndirectIndexed, 2, 5, bind(&CPU::cmp, this, _1) } });
+	// CPX opcodes.
+	opcodes.insert({ 0xe0, OpCode{ Addressing::Immediate,		2, 2, bind(&CPU::cpx, this, _1) } });
+	opcodes.insert({ 0xe4, OpCode{ Addressing::ZeroPage,		2, 3, bind(&CPU::cpx, this, _1) } });
+	opcodes.insert({ 0xec, OpCode{ Addressing::Absolute,		3, 4, bind(&CPU::cpx, this, _1) } });
+	// CPY opcodes.
+	opcodes.insert({ 0xc0, OpCode{ Addressing::Immediate,		2, 2, bind(&CPU::cpy, this, _1) } });
+	opcodes.insert({ 0xc4, OpCode{ Addressing::ZeroPage,		2, 3, bind(&CPU::cpy, this, _1) } });
+	opcodes.insert({ 0xcc, OpCode{ Addressing::Absolute,		3, 4, bind(&CPU::cpy, this, _1) } });
+	// INC opcodes.
+	opcodes.insert({ 0xe6, OpCode{ Addressing::ZeroPage,		2, 5, bind(&CPU::inc, this, _1) } });
+	opcodes.insert({ 0xf6, OpCode{ Addressing::ZeroPageX,		2, 6, bind(&CPU::inc, this, _1) } });
+	opcodes.insert({ 0xee, OpCode{ Addressing::Absolute,		3, 6, bind(&CPU::inc, this, _1) } });
+	opcodes.insert({ 0xfe, OpCode{ Addressing::AbsoluteX,		3, 7, bind(&CPU::inc, this, _1) } });
+	// INX opcodes.
+	opcodes.insert({ 0xe8, OpCode{ Addressing::Implicit,		1, 2, bind(&CPU::inx, this, _1) } });
+	// INY opcodes.
+	opcodes.insert({ 0xc8, OpCode{ Addressing::Implicit,		1, 2, bind(&CPU::iny, this, _1) } });
+	// DEC opcodes.
+	opcodes.insert({ 0xc6, OpCode{ Addressing::ZeroPage,		2, 5, bind(&CPU::dec, this, _1) } });
+	opcodes.insert({ 0xd6, OpCode{ Addressing::ZeroPageX,		2, 6, bind(&CPU::dec, this, _1) } });
+	opcodes.insert({ 0xce, OpCode{ Addressing::Absolute,		3, 6, bind(&CPU::dec, this, _1) } });
+	opcodes.insert({ 0xde, OpCode{ Addressing::AbsoluteX,		3, 7, bind(&CPU::dec, this, _1) } });
+	// DEX opcodes.
+	opcodes.insert({ 0xca, OpCode{ Addressing::Implicit,		1, 2, bind(&CPU::dex, this, _1) } });
+	// DEY opcodes.
+	opcodes.insert({ 0x88, OpCode{ Addressing::Implicit,		1, 2, bind(&CPU::dey, this, _1) } });
+	// ASL opcodes.
+	opcodes.insert({ 0x0a, OpCode{ Addressing::Accumulator,		1, 2, bind(&CPU::asl, this, _1) } });
+	opcodes.insert({ 0x06, OpCode{ Addressing::ZeroPage,		2, 5, bind(&CPU::asl, this, _1) } });
+	opcodes.insert({ 0x16, OpCode{ Addressing::ZeroPageX,		2, 6, bind(&CPU::asl, this, _1) } });
+	opcodes.insert({ 0x0e, OpCode{ Addressing::Absolute,		3, 6, bind(&CPU::asl, this, _1) } });
+	opcodes.insert({ 0x1e, OpCode{ Addressing::AbsoluteX,		3, 7, bind(&CPU::asl, this, _1) } });
+	// LSR opcodes.
+	opcodes.insert({ 0x4a, OpCode{ Addressing::Accumulator,		1, 2, bind(&CPU::lsr, this, _1) } });
+	opcodes.insert({ 0x46, OpCode{ Addressing::ZeroPage,		2, 5, bind(&CPU::lsr, this, _1) } });
+	opcodes.insert({ 0x56, OpCode{ Addressing::ZeroPageX,		2, 6, bind(&CPU::lsr, this, _1) } });
+	opcodes.insert({ 0x4e, OpCode{ Addressing::Absolute,		3, 6, bind(&CPU::lsr, this, _1) } });
+	opcodes.insert({ 0x5e, OpCode{ Addressing::AbsoluteX,		3, 7, bind(&CPU::lsr, this, _1) } });
+	// ROL opcodes.
+	opcodes.insert({ 0x2a, OpCode{ Addressing::Accumulator,		1, 2, bind(&CPU::rol, this, _1) } });
+	opcodes.insert({ 0x26, OpCode{ Addressing::ZeroPage,		2, 5, bind(&CPU::rol, this, _1) } });
+	opcodes.insert({ 0x36, OpCode{ Addressing::ZeroPageX,		2, 6, bind(&CPU::rol, this, _1) } });
+	opcodes.insert({ 0x2e, OpCode{ Addressing::Absolute,		3, 6, bind(&CPU::rol, this, _1) } });
+	opcodes.insert({ 0x3e, OpCode{ Addressing::AbsoluteX,		3, 7, bind(&CPU::rol, this, _1) } });
+	// ROR opcodes.
+	opcodes.insert({ 0x6a, OpCode{ Addressing::Accumulator,		1, 2, bind(&CPU::ror, this, _1) } });
+	opcodes.insert({ 0x66, OpCode{ Addressing::ZeroPage,		2, 5, bind(&CPU::ror, this, _1) } });
+	opcodes.insert({ 0x76, OpCode{ Addressing::ZeroPageX,		2, 6, bind(&CPU::ror, this, _1) } });
+	opcodes.insert({ 0x6e, OpCode{ Addressing::Absolute,		3, 6, bind(&CPU::ror, this, _1) } });
+	opcodes.insert({ 0x7e, OpCode{ Addressing::AbsoluteX,		3, 7, bind(&CPU::ror, this, _1) } });
+	// JMP opcodes.
+	opcodes.insert({ 0x4c, OpCode{ Addressing::Absolute,		3, 3, bind(&CPU::jmp, this, _1) } });
+	opcodes.insert({ 0x6c, OpCode{ Addressing::Indirect,		3, 5, bind(&CPU::jmp, this, _1) } });
+	// JSR opcodes.
+	opcodes.insert({ 0x20, OpCode{ Addressing::Absolute,		3, 6, bind(&CPU::jsr, this, _1) } });
+	// RTS opcodes.
+	opcodes.insert({ 0x60, OpCode{ Addressing::Implicit,		1, 6, bind(&CPU::rts, this, _1) } });
+	// BCC opcodes.
+	opcodes.insert({ 0x90, OpCode{ Addressing::Relative,		2, 2, bind(&CPU::bcc, this, _1) } });
+	// BCS opcodes.
+	opcodes.insert({ 0xb0, OpCode{ Addressing::Relative,		2, 2, bind(&CPU::bcs, this, _1) } });
+	// BEQ opcodes.
+	opcodes.insert({ 0xf0, OpCode{ Addressing::Relative,		2, 2, bind(&CPU::beq, this, _1) } });
+	// BMI opcodes.
+	opcodes.insert({ 0x30, OpCode{ Addressing::Relative,		2, 2, bind(&CPU::bmi, this, _1) } });
+	// BNE opcodes.
+	opcodes.insert({ 0xd0, OpCode{ Addressing::Relative,		2, 2, bind(&CPU::bne, this, _1) } });
+	// BPL opcodes.
+	opcodes.insert({ 0x10, OpCode{ Addressing::Relative,		2, 2, bind(&CPU::bpl, this, _1) } });
+	// BVC opcodes.
+	opcodes.insert({ 0x50, OpCode{ Addressing::Relative,		2, 2, bind(&CPU::bvc, this, _1) } });
+	// BVS opcodes.
+	opcodes.insert({ 0x70, OpCode{ Addressing::Relative,		2, 2, bind(&CPU::bvs, this, _1) } });
+	// CLC opcodes.
+	opcodes.insert({ 0x18, OpCode{ Addressing::Implicit,		1, 2, bind(&CPU::clc, this, _1) } });
+	// CLD opcodes.
+	opcodes.insert({ 0xd8, OpCode{ Addressing::Implicit,		1, 2, bind(&CPU::cld, this, _1) } });
+	// CLI opcodes.
+	opcodes.insert({ 0x58, OpCode{ Addressing::Implicit,		1, 2, bind(&CPU::cli, this, _1) } });
+	// CLV opcodes.
+	opcodes.insert({ 0xb8, OpCode{ Addressing::Implicit,		1, 2, bind(&CPU::clv, this, _1) } });
+	// SEC opcodes.
+	opcodes.insert({ 0x38, OpCode{ Addressing::Implicit,		1, 2, bind(&CPU::sec, this, _1) } });
+	// SED opcodes.
+	opcodes.insert({ 0xf8, OpCode{ Addressing::Implicit,		1, 2, bind(&CPU::sed, this, _1) } });
+	// SEI opcodes.
+	opcodes.insert({ 0x78, OpCode{ Addressing::Implicit,		1, 2, bind(&CPU::sei, this, _1) } });
 
 	//opcodes.at(0xa9).op_func(opcodes.at(0xa9).addr_mode);
 	//opcodes.at(0xa0).op_func(Addressing::Indirect);
