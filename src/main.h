@@ -3,8 +3,11 @@
 
 #pragma once
 
-#include <iostream>
-#include <cstdint>
-
 #include "cpu/cpu.h"
 #include "ram/ram.h"
+#include "mapper/mapper.h"
+
+#include <cstdint>
+#include <fstream>
+#include <iostream>
+#include <string>
