@@ -4,8 +4,8 @@
 cmake_minimum_required (VERSION 3.8)
 
 project ("nes-emu"
-		DESCRIPTION "NES emulator"
-		LANGUAGES    CXX
+        DESCRIPTION "NES emulator"
+        LANGUAGES    CXX
 )
 
 # SET(GCC_COVERAGE_COMPILE_FLAGS "-Wall -Wextra -O2")
@@ -15,12 +15,12 @@ project ("nes-emu"
 add_subdirectory ("src")
 
 # add_executable (
-# 	nes-emu 
-# 	"src/main.cpp" "src/main.h" 
-# 	"src/cpu/cpu.cpp" "src/cpu/cpu.h" "src/cpu/addressing.cpp" "src/cpu/instructions.cpp"
-# 	"src/ram/ram.cpp" "src/ram/ram.h"
+#     nes-emu 
+#     "src/main.cpp" "src/main.h" 
+#     "src/cpu/cpu.cpp" "src/cpu/cpu.h" "src/cpu/addressing.cpp" "src/cpu/instructions.cpp"
+#     "src/ram/ram.cpp" "src/ram/ram.h"
 # )
 
 if(CMAKE_CXX_COMPILER_ID STREQUAL "GNU")
-	target_compile_options(nes-emu PRIVATE -Wall -Wextra -O2)
+    target_compile_options(nes-emu PRIVATE -Wall -Wextra -O2)
 endif()
