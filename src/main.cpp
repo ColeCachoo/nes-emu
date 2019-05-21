@@ -80,10 +80,10 @@ void parse_results() {
 
 void compare_logs() {
     // TODO: Get it to work without the full address on Windows.
-    // ifstream my_log("../resources/my_log.txt");
-    // ifstream parsed_log("../resources/parsed_log.txt");
-    ifstream my_log("E:/Documents/programming/nes-emu/resources/my_log.txt");
-    ifstream parsed_log("E:/Documents/programming/nes-emu/resources/parsed_log.txt");
+    ifstream my_log("../resources/my_log.txt");
+    ifstream parsed_log("../resources/parsed_log.txt");
+    // ifstream my_log("E:/Documents/programming/nes-emu/resources/my_log.txt");
+    // ifstream parsed_log("E:/Documents/programming/nes-emu/resources/parsed_log.txt");
     if (!my_log.is_open() || !parsed_log.is_open()) {
         puts("Failed to open log for comparison");
         exit(1);
