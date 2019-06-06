@@ -1,26 +1,46 @@
-﻿# CMakeList.txt : Top-level CMake project file, do global configuration
-# and include sub-projects here.
-#
-cmake_minimum_required (VERSION 3.8)
+﻿cmake_minimum_required (VERSION 3.8)
 
-project ("nes-emu"
-        DESCRIPTION "NES emulator"
-        LANGUAGES    CXX
-)
-
-# SET(GCC_COVERAGE_COMPILE_FLAGS "-Wall -Wextra -O2")
-# add_definitions(${GCC_COVERAGE_COMPILE_FLAGS})
-
-# Include sub-projects.
-add_subdirectory ("src")
-
-# add_executable (
-#     nes-emu 
-#     "src/main.cpp" "src/main.h" 
-#     "src/cpu/cpu.cpp" "src/cpu/cpu.h" "src/cpu/addressing.cpp" "src/cpu/instructions.cpp"
-#     "src/ram/ram.cpp" "src/ram/ram.h"
-# )
-
-if(CMAKE_CXX_COMPILER_ID STREQUAL "GNU")
-    target_compile_options(nes-emu PRIVATE -Wall -Wextra -O2)
+if(DEFINED ENV{VCPKG_ROOT} AND NOT DEFINED CMAKE_TOOLCHAIN_FILE)
+  set(CMAKE_TOOLCHAIN_FILE "$ENV{VCPKG_ROOT}/scripts/buildsystems/vcpkg.cmake"
+      CACHE STRING "")
 endif()
+
+project(nes-emu CXX)
+
+find_package(fmt REQUIRED)
+find_package(SDL2 REQUIRED)
+# find_package(SDL2-image REQUIRED)
+
+add_executable (
+    ${PROJECT_NAME} 
+    "src/main.cpp"
+    "src/error.h"
+    "src/cpu/cpu.cpp" 
+    "src/cpu/cpu.h" 
+    "src/cpu/addressing.cpp" 
+    "src/cpu/instructions.cpp"
+    "src/ram.h"
+    "src/map.cpp" 
+    "src/map.h"
+    "src/ppu/ppu.cpp"
+    "src/ppu/ppu.h"
+)
+    # "src/sdl2-playground.cpp"
+    # "src/sdl2-playground.h"
+
+target_include_directories(${PROJECT_NAME} PRIVATE "${CMAKE_CURRENT_LIST_DIR}/src")
+
+target_link_libraries(${PROJECT_NAME} fmt::fmt)
+target_link_libraries(${PROJECT_NAME} SDL2::SDL2 SDL2::SDL2main)
+# target_link_libraries(${PROJECT_NAME} SDL2::SDL2_image)
+
+target_compile_features(${PROJECT_NAME} PRIVATE cxx_std_17)
+
+# if(CMAKE_CXX_COMPILER_ID STREQUAL "GNU")
+#     target_compile_options(nes-emu PRIVATE -Wall -Wextra -O2)
+# endif()
+
+# enable_testing()
+# find_package(GTest MODULE REQUIRED)
+# target_link_libraries(main PRIVATE GTest::GTest GTest::Main)
+# add_test(AllTestsInMain main)
