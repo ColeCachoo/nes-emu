@@ -1,20 +1,42 @@
 ﻿// main.cpp : Defines the entry point for the application.
 //
+#include "cpu/cpu.h"
+#include "error.h"
+#include "map.h"
+#include "ram.h"
+#include "ppu/ppu.h"
+// TODO: Remove when done.
+// #include "sdl2-playground.h"
 
-#include "main.h"
+#include <SDL.h>
+#include <fmt/format.h>
+#include <fmt/ostream.h>
+
+#include <fstream>
+#include <string>
 
 using namespace std;
+
+// void sdl_playground();
+// SDL_Surface *load_surface(string path);
 
 void parse_results();
 void compare_logs();
 
-int main() {
-    cout << "Hello nes-emu." << "\n";
+int main(int argc, char *args[]) {
+    // sdl_playground();
+    fmt::print("Hello nes-emu.\n");
 
-    RAM ram;
+    // 64kB of RAM.
+    RAM ram(64 * 1024);
 
-    Mapper mapper(&ram);
-    CPU cpu(&ram);
+    if (map("../resources/nestest.nes", ram) == ERROR) {
+        fmt::print("Failed to open ROM.\n");
+        exit(1);
+    }
+
+    // CPU cpu(&ram);
+    PPU ppu(&ram);
 
     // parse_results();
     compare_logs();
@@ -24,17 +46,15 @@ int main() {
 
 void parse_results() {
     const string test_log = "nestest.log.txt";
-    // TODO: Get it to work without the full address on Windows.
     ifstream cpu_test_log("../resources/" + test_log);
-    // ifstream cpu_test_log("E:/Documents/programming/nes-emu/resources/" + test_log);
     if (!cpu_test_log.is_open()) {
-        cout << "Failed to open " + test_log + "\n";
+        fmt::print(stderr, "Failed to open {}\n", test_log);
         return;
     }
 
     ofstream parsed_log("../resources/parsed_log.txt");
     if (!parsed_log.is_open()) {
-        puts("Failed to open file for writing.");
+        fmt::print("Failed to open file for writing.\n");
         exit(1);
     }
 
@@ -61,7 +81,6 @@ void parse_results() {
         string result = "";
         result += tokens[0] + " " + tokens[1] + " ";
         for (size_t i = 2; i < tokens.size(); i++) {
-            // printf("%s ", s.c_str());
             if (tokens.at(i).find("A:") != string::npos) {
                 result += tokens.at(i) + " ";
                 result += tokens.at(i + 1) + " ";
@@ -71,7 +90,7 @@ void parse_results() {
                 break;
             }
         }
-        parsed_log << result << "\n";
+        fmt::print(parsed_log, "{}\n", result);
     }
 
     cpu_test_log.close();
@@ -79,13 +98,10 @@ void parse_results() {
 }
 
 void compare_logs() {
-    // TODO: Get it to work without the full address on Windows.
     ifstream my_log("../resources/my_log.txt");
     ifstream parsed_log("../resources/parsed_log.txt");
-    // ifstream my_log("E:/Documents/programming/nes-emu/resources/my_log.txt");
-    // ifstream parsed_log("E:/Documents/programming/nes-emu/resources/parsed_log.txt");
     if (!my_log.is_open() || !parsed_log.is_open()) {
-        puts("Failed to open log for comparison");
+        fmt::print(stderr, "Failed to open log for comparison\n");
         exit(1);
     }
 
@@ -95,10 +111,8 @@ void compare_logs() {
     string old_parsed_line = "";
     while (getline(my_log, my_log_line) && getline(parsed_log, parsed_log_line)) {
         if (my_log_line != parsed_log_line) {
-            cout << "Expected\n" << 
-                old_parsed_line << "\n" << parsed_log_line << "\n";
-            cout << "Got\n" << 
-                old_my_line << "\n" <<  my_log_line << "\n";
+            fmt::print("Expected\n{}\n{}\n", old_parsed_line, parsed_log_line);
+            fmt::print("Got\n{}\n{}\n", old_my_line, my_log_line);
             break;
         }
         old_my_line = my_log_line;
