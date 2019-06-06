@@ -2,6 +2,8 @@
 //
 #include "cpu.h"
 
+#include <fmt/format.h>
+
 using namespace std;
 
 /*************************
@@ -9,14 +11,7 @@ using namespace std;
  *************************/
 /// LDA - Load Accumulator
 void 
-CPU::lda(Addressing addr_mode) {
-    uint16_t addr = fetch_with(addr_mode);
-    uint8_t val;
-    if (addr_mode == Addressing::Immediate) {
-        val = uint8_t(addr);
-    } else {
-        val = ram->read(addr);
-    }
+CPU::lda(const uint8_t val) {
     accumulator = val;
     set_zero_if(accumulator);
     set_negative_if(accumulator);
@@ -24,14 +19,7 @@ CPU::lda(Addressing addr_mode) {
 
 /// LDX - Load X Register
 void
-CPU::ldx(Addressing addr_mode) {
-    uint16_t addr = fetch_with(addr_mode);
-    uint8_t val;
-    if (addr_mode == Addressing::Immediate) {
-        val = uint8_t(addr);
-    } else {
-        val = ram->read(addr);
-    }
+CPU::ldx(const uint8_t val) {
     x_index = val;
     set_zero_if(x_index);
     set_negative_if(x_index);
@@ -39,14 +27,7 @@ CPU::ldx(Addressing addr_mode) {
 
 /// LDY - Load Y Register
 void
-CPU::ldy(Addressing addr_mode) {
-    uint16_t addr = fetch_with(addr_mode);
-    uint8_t val;
-    if (addr_mode == Addressing::Immediate) {
-        val = uint8_t(addr);
-    } else {
-        val = ram->read(addr);
-    }
+CPU::ldy(const uint8_t val) {
     y_index = val;
     set_zero_if(y_index);
     set_negative_if(y_index);
@@ -54,22 +35,19 @@ CPU::ldy(Addressing addr_mode) {
 
 /// STA - Store Accumulator
 void 
-CPU::sta(Addressing addr_mode) {
-    uint16_t addr = fetch_with(addr_mode);
+CPU::sta(const uint16_t addr) {
     ram->write(accumulator, addr);
 }
 
 /// STX - Store X Register
 void 
-CPU::stx(Addressing addr_mode) {
-    uint16_t addr = fetch_with(addr_mode);
+CPU::stx(const uint16_t addr) {
     ram->write(x_index, addr);
 }
 
 /// STY - Store Y Register
 void 
-CPU::sty(Addressing addr_mode) {
-    uint16_t addr = fetch_with(addr_mode);
+CPU::sty(const uint16_t addr) {
     ram->write(y_index, addr);
 }
 
@@ -78,10 +56,7 @@ CPU::sty(Addressing addr_mode) {
  **********************/
 /// TAX - Transfer Accumulator to X
 void 
-CPU::tax(Addressing addr_mode) {
-    if (addr_mode != Addressing::Implicit) {
-        cerr << "Unexpected addressing mode in TAX: " << int(addr_mode) << "\n";
-    }
+CPU::tax() {
     x_index = accumulator;
     set_zero_if(x_index);
     set_negative_if(x_index);
@@ -89,10 +64,7 @@ CPU::tax(Addressing addr_mode) {
 
 /// TAY - Transfer Accumulator to Y
 void 
-CPU::tay(Addressing addr_mode) {
-    if (addr_mode != Addressing::Implicit) {
-        cerr << "Unexpected addressing mode in TAY: " << int(addr_mode) << "\n";
-    }
+CPU::tay() {
     y_index = accumulator;
     set_zero_if(y_index);
     set_negative_if(y_index);
@@ -100,10 +72,7 @@ CPU::tay(Addressing addr_mode) {
 
 /// TXA - Transfer X to Accumulator
 void 
-CPU::txa(Addressing addr_mode) {
-    if (addr_mode != Addressing::Implicit) {
-        cerr << "Unexpected addressing mode in TXA: " << int(addr_mode) << "\n";
-    }
+CPU::txa() {
     accumulator = x_index;
     set_zero_if(accumulator);
     set_negative_if(accumulator);
@@ -111,13 +80,10 @@ CPU::txa(Addressing addr_mode) {
 
 /// TYA - Transfer Y to Accumulator
 void 
-CPU::tya(Addressing addr_mode) {
-    if (addr_mode != Addressing::Implicit) {
-        cerr << "Unexpected addressing mode in TYA: " << int(addr_mode) << "\n";
-    }
-        accumulator = y_index;
-        set_zero_if(accumulator);
-        set_negative_if(accumulator);
+CPU::tya() {
+    accumulator = y_index;
+    set_zero_if(accumulator);
+    set_negative_if(accumulator);
 }
 
 /********************
@@ -125,39 +91,27 @@ CPU::tya(Addressing addr_mode) {
  ********************/
 /// TSX - Transfer stack pointer to X	
 void 
-CPU::tsx(Addressing addr_mode) {
-    if (addr_mode != Addressing::Implicit) {
-        cerr << "Unexpected addressing mode in TSX: " << int(addr_mode) << "\n";
-    }
-	x_index = stack_pointer;
+CPU::tsx() {
+    x_index = stack_pointer;
     set_zero_if(x_index);
     set_negative_if(x_index);
 }
 
 /// TXS - Transfer X to stack pointer	
 void 
-CPU::txs(Addressing addr_mode) {
-    if (addr_mode != Addressing::Implicit) {
-        cerr << "Unexpected addressing mode in TXS: " << int(addr_mode) << "\n";
-    }
-	stack_pointer = x_index;
+CPU::txs() {
+    stack_pointer = x_index;
 }
 
 /// PHA - Push accumulator on stack	
 void 
-CPU::pha(Addressing addr_mode) {
-    if (addr_mode != Addressing::Implicit) {
-        cerr << "Unexpected addressing mode in PHA: " << int(addr_mode) << "\n";
-    }
+CPU::pha() {
     stack_push(accumulator);
 }
 
 /// PHP - Push processor status on stack	
 void 
-CPU::php(Addressing addr_mode) {
-    if (addr_mode != Addressing::Implicit) {
-        cerr << "Unexpected addressing mode in PHP: " << int(addr_mode) << "\n";
-    }
+CPU::php() {
     cpu_status.set(BreakCommand);
     cpu_status.set(Expansion);
     stack_push(uint8_t(cpu_status.to_ulong()));
@@ -166,10 +120,7 @@ CPU::php(Addressing addr_mode) {
 
 /// PLA - Pull accumulator from stack	
 void 
-CPU::pla(Addressing addr_mode) {
-    if (addr_mode != Addressing::Implicit) {
-        cerr << "Unexpected addressing mode in PLA: " << int(addr_mode) << "\n";
-    }
+CPU::pla() {
     accumulator = stack_pop();
     set_zero_if(accumulator);
     set_negative_if(accumulator);
@@ -177,10 +128,7 @@ CPU::pla(Addressing addr_mode) {
 
 /// PLP - Pull processor status from stack	
 void 
-CPU::plp(Addressing addr_mode) {
-    if (addr_mode != Addressing::Implicit) {
-        cerr << "Unexpected addressing mode in PLP: " << int(addr_mode) << "\n";
-    }
+CPU::plp() {
     cpu_status = stack_pop();
     cpu_status.reset(BreakCommand);
     cpu_status.set(Expansion);
@@ -191,14 +139,7 @@ CPU::plp(Addressing addr_mode) {
  ***********/
 /// AND - Logical AND
 void 
-CPU::logical_and(Addressing addr_mode) {
-    uint16_t addr = fetch_with(addr_mode);
-    uint8_t val;
-    if (addr_mode == Addressing::Immediate) {
-        val = uint8_t(addr);
-    } else {
-        val = ram->read(addr);
-    }
+CPU::logical_and(const uint8_t val) {
     accumulator &= val;
     set_zero_if(accumulator);
     set_negative_if(accumulator);
@@ -206,14 +147,7 @@ CPU::logical_and(Addressing addr_mode) {
 
 /// EOR - Exclusive OR
 void 
-CPU::eor(Addressing addr_mode) {
-    uint16_t addr = fetch_with(addr_mode);
-    uint8_t val;
-    if (addr_mode == Addressing::Immediate) {
-        val = uint8_t(addr);
-    } else {
-        val = ram->read(addr);
-    }
+CPU::eor(const uint8_t val) {
     accumulator ^= val;
     set_zero_if(accumulator);
     set_negative_if(accumulator);
@@ -221,14 +155,7 @@ CPU::eor(Addressing addr_mode) {
 
 /// ORA - Logical Inclusive OR
 void
-CPU::ora(Addressing addr_mode) {
-    uint16_t addr = fetch_with(addr_mode);
-    uint8_t val;
-    if (addr_mode == Addressing::Immediate) {
-        val = uint8_t(addr);
-    } else {
-        val = ram->read(addr);
-    }
+CPU::ora(const uint8_t val) {
     accumulator |= val;
     set_zero_if(accumulator);
     set_negative_if(accumulator);
@@ -236,9 +163,7 @@ CPU::ora(Addressing addr_mode) {
 
 /// BIT - Bit Test
 void 
-CPU::bit(Addressing addr_mode) {
-    uint16_t addr = fetch_with(addr_mode);
-    uint8_t val = ram->read(addr);
+CPU::bit(const uint8_t val) {
     set_zero_if(accumulator & val);
     set_negative_if(val);
     if (val & 0x40) {
@@ -253,14 +178,7 @@ CPU::bit(Addressing addr_mode) {
  **************/
 /// ADC - Add with Carry
 void 
-CPU::adc(Addressing addr_mode) {
-    uint16_t addr = fetch_with(addr_mode);
-    uint8_t val;
-    if (addr_mode == Addressing::Immediate) {
-        val = uint8_t(addr);
-    } else {
-        val = ram->read(addr);
-    }
+CPU::adc(const uint8_t val) {
     // Used later to check for overflow. Needs accumulator before it gets changed.
     uint8_t old_a = accumulator;
 
@@ -299,14 +217,7 @@ CPU::adc(Addressing addr_mode) {
 
 /// SBC - Subtract with Carry
 void 
-CPU::sbc(Addressing addr_mode) {
-    uint16_t addr = fetch_with(addr_mode);
-    uint8_t val;
-    if (addr_mode == Addressing::Immediate) {
-        val = uint8_t(addr);
-    } else {
-        val = ram->read(addr);
-    }
+CPU::sbc(const uint8_t val) {
     // Used later to check for overflow. Needs accumulator before it gets changed.
     uint8_t old_a = accumulator;
 
@@ -345,92 +256,43 @@ CPU::sbc(Addressing addr_mode) {
     }
 }
 
-/// CMP - Compare
-void 
-CPU::cmp(Addressing addr_mode) {
-    uint16_t addr = fetch_with(addr_mode);
-    uint8_t val;
-    if (addr_mode == Addressing::Immediate) {
-        val = uint8_t(addr);
-    } else {
-        val = ram->read(addr);
-    }
-    if (accumulator >= val) {
+void
+CPU::compare(const uint8_t reg, const uint8_t val) {
+    if (reg >= val) {
         cpu_status.set(Carry);
     } else {
         cpu_status.reset(Carry);
     }
 
-    if (accumulator == val) {
+    if (reg == val) {
         cpu_status.set(Zero);
     } else {
         cpu_status.reset(Zero);
     }
 
-    if ((accumulator - val) & 0x80) {
+    if ((reg - val) & 0x80) {
         cpu_status.set(Negative);
     } else {
         cpu_status.reset(Negative);
     }
+}
+
+/// CMP - Compare
+void 
+CPU::cmp(const uint8_t val) {
+    compare(accumulator, val);
 }
 
 /// CPX - Compare X Register
 void 
-CPU::cpx(Addressing addr_mode) {
-    uint16_t addr = fetch_with(addr_mode);
-    uint8_t val;
-    if (addr_mode == Addressing::Immediate) {
-        val = uint8_t(addr);
-    } else {
-        val = ram->read(addr);
-    }
-    if (x_index >= val) {
-        cpu_status.set(Carry);
-    } else {
-        cpu_status.reset(Carry);
-    }
-
-    if (x_index == val) {
-        cpu_status.set(Zero);
-    } else {
-        cpu_status.reset(Zero);
-    }
-
-    if ((x_index - val) & 0x80) {
-        cpu_status.set(Negative);
-    } else {
-        cpu_status.reset(Negative);
-    }
+CPU::cpx(const uint8_t val) {
+    compare(x_index, val);
 }
 
 /// CPY - Compare Y Register
 void 
-CPU::cpy(Addressing addr_mode) {
-    uint16_t addr = fetch_with(addr_mode);
-    uint8_t val;
-    if (addr_mode == Addressing::Immediate) {
-        val = uint8_t(addr);
-    } else {
-        val = ram->read(addr);
-    }
-
-    if (y_index >= val) {
-        cpu_status.set(Carry);
-    } else {
-        cpu_status.reset(Carry);
-    }
-
-    if (y_index == val) {
-        cpu_status.set(Zero);
-    } else {
-        cpu_status.reset(Zero);
-    }
-
-    if ((y_index - val) & 0x80) {
-        cpu_status.set(Negative);
-    } else {
-        cpu_status.reset(Negative);
-    }
+CPU::cpy(const uint8_t val) {
+    compare(y_index, val);
 }
 
 /***************************
@@ -438,8 +300,7 @@ CPU::cpy(Addressing addr_mode) {
  ***************************/
 /// INC - Increment a memory location
 void 
-CPU::inc(Addressing addr_mode) {
-    uint16_t addr = fetch_with(addr_mode);
+CPU::inc(const uint16_t addr) {
     uint8_t val = ram->read(addr);
     val++;
     ram->write(val, addr);
@@ -449,10 +310,7 @@ CPU::inc(Addressing addr_mode) {
 
 /// INX - Increment the X register
 void 
-CPU::inx(Addressing addr_mode) {
-    if (addr_mode != Addressing::Implicit) {
-        cerr << "Unexpected addressing mode in INX: " << int(addr_mode) << "\n";
-    }
+CPU::inx() {
     x_index++;
     set_zero_if(x_index);
     set_negative_if(x_index);
@@ -460,10 +318,7 @@ CPU::inx(Addressing addr_mode) {
 
 /// INY - Increment the Y register
 void 
-CPU::iny(Addressing addr_mode) {
-    if (addr_mode != Addressing::Implicit) {
-        cerr << "Unexpected addressing mode in INY: " << int(addr_mode) << "\n";
-    }
+CPU::iny() {
     y_index++;
     set_zero_if(y_index);
     set_negative_if(y_index);
@@ -471,8 +326,7 @@ CPU::iny(Addressing addr_mode) {
 
 /// DEC - Decrement a memory location
 void 
-CPU::dec(Addressing addr_mode) {
-    uint16_t addr = fetch_with(addr_mode);
+CPU::dec(const uint16_t addr) {
     uint8_t val = ram->read(addr);
     val--;
     ram->write(val, addr);
@@ -482,10 +336,7 @@ CPU::dec(Addressing addr_mode) {
 
 /// DEX - Decrement the X register
 void 
-CPU::dex(Addressing addr_mode) {
-    if (addr_mode != Addressing::Implicit) {
-        cerr << "Unexpected addressing mode in DEX: " << int(addr_mode) << "\n";
-    }
+CPU::dex() {
     x_index--;
     set_zero_if(x_index);
     set_negative_if(x_index);
@@ -493,10 +344,7 @@ CPU::dex(Addressing addr_mode) {
 
 /// DEY - Decrement the Y register
 void 
-CPU::dey(Addressing addr_mode) {
-    if (addr_mode != Addressing::Implicit) {
-        cerr << "Unexpected addressing mode in DEY: " << int(addr_mode) << "\n";
-    }
+CPU::dey() {
     y_index--;
     set_zero_if(y_index);
     set_negative_if(y_index);
@@ -505,7 +353,7 @@ CPU::dey(Addressing addr_mode) {
 /**********
  * Shifts *
  **********/
-/// ASL - 	Arithmetic Shift Left
+/// ASL - Arithmetic Shift Left
 void 
 CPU::asl(Addressing addr_mode) {
     uint16_t addr;
@@ -618,15 +466,13 @@ CPU::ror(Addressing addr_mode) {
  *****************/
 /// JMP - Jump to another location
 void 
-CPU::jmp(Addressing addr_mode) {
-    uint16_t addr = fetch_with(addr_mode);
+CPU::jmp(const uint16_t addr) {
     program_counter = addr;
 }
 
 /// JSR - Jump to a subroutine
 void 
-CPU::jsr(Addressing addr_mode) {
-    uint16_t addr = fetch_with(addr_mode);
+CPU::jsr(const uint16_t addr) {
     program_counter--;
     stack_push(get_pch());
     stack_push(get_pcl());
@@ -635,10 +481,7 @@ CPU::jsr(Addressing addr_mode) {
 
 /// RTS - Return from subroutine
 void 
-CPU::rts(Addressing addr_mode) {
-    if (addr_mode != Addressing::Implicit) {
-        cerr << "Unexpected addressing mode in RTS: " << int(addr_mode) << "\n";
-    }
+CPU::rts() {
     uint16_t pcl = stack_pop();
     uint16_t pch = stack_pop();
     pch <<= 8;
@@ -651,9 +494,9 @@ CPU::rts(Addressing addr_mode) {
  ************/
 /// BCC - Branch if carry flag clear
 void 
-CPU::bcc(Addressing addr_mode) {
+CPU::bcc() {
     if (cpu_status[Carry] == 0) {
-        int8_t offset = fetch_with(addr_mode);
+        int8_t offset = int8_t(fetch_with(Addressing::Relative));
         program_counter += offset;
     } else {
         program_counter++;
@@ -662,9 +505,9 @@ CPU::bcc(Addressing addr_mode) {
 
 /// BCS - Branch if carry flag set
 void 
-CPU::bcs(Addressing addr_mode) {
+CPU::bcs() {
     if (cpu_status[Carry] == 1) {
-        int8_t offset = fetch_with(addr_mode);
+        int8_t offset = int8_t(fetch_with(Addressing::Relative));
         program_counter += offset;
     } else {
         program_counter++;
@@ -673,9 +516,9 @@ CPU::bcs(Addressing addr_mode) {
 
 /// BEQ - Branch if zero flag set
 void 
-CPU::beq(Addressing addr_mode) {
+CPU::beq() {
     if (cpu_status[Zero] == 1) {
-        int8_t offset = fetch_with(addr_mode);
+        int8_t offset = int8_t(fetch_with(Addressing::Relative));
         program_counter += offset;
     } else {
         program_counter++;
@@ -684,9 +527,9 @@ CPU::beq(Addressing addr_mode) {
 
 /// BMI - Branch if negative flag set
 void 
-CPU::bmi(Addressing addr_mode) {
+CPU::bmi() {
     if (cpu_status[Negative] == 1) {
-        int8_t offset = fetch_with(addr_mode);
+        int8_t offset = int8_t(fetch_with(Addressing::Relative));
         program_counter += offset;
     } else {
         program_counter++;
@@ -695,9 +538,9 @@ CPU::bmi(Addressing addr_mode) {
 
 /// BNE - Branch if zero flag clear
 void 
-CPU::bne(Addressing addr_mode) {
+CPU::bne() {
     if (cpu_status[Zero] == 0) {
-        int8_t offset = fetch_with(addr_mode);
+        int8_t offset = int8_t(fetch_with(Addressing::Relative));
         program_counter += offset;
     } else {
         program_counter++;
@@ -706,9 +549,9 @@ CPU::bne(Addressing addr_mode) {
 
 /// BPL - Branch if negative flag clear
 void 
-CPU::bpl(Addressing addr_mode) {
+CPU::bpl() {
     if (cpu_status[Negative] == 0) {
-        int8_t offset = fetch_with(addr_mode);
+        int8_t offset = int8_t(fetch_with(Addressing::Relative));
         program_counter += offset;
     } else {
         program_counter++;
@@ -717,9 +560,9 @@ CPU::bpl(Addressing addr_mode) {
 
 /// BVC - Branch if overflow flag clear
 void 
-CPU::bvc(Addressing addr_mode) {
+CPU::bvc() {
     if (cpu_status[Overflow] == 0) {
-        int8_t offset = fetch_with(addr_mode);
+        int8_t offset = int8_t(fetch_with(Addressing::Relative));
         program_counter += offset;
     } else {
         program_counter++;
@@ -728,9 +571,9 @@ CPU::bvc(Addressing addr_mode) {
 
 /// BVS - Branch if overflow flag set
 void 
-CPU::bvs(Addressing addr_mode) {
+CPU::bvs() {
     if (cpu_status[Overflow] == 1) {
-        int8_t offset = fetch_with(addr_mode);
+        int8_t offset = int8_t(fetch_with(Addressing::Relative));
         program_counter += offset;
     } else {
         program_counter++;
@@ -742,64 +585,43 @@ CPU::bvs(Addressing addr_mode) {
  ***********************/
 /// CLC - Clear carry flag
 void 
-CPU::clc(Addressing addr_mode) {
-    if (addr_mode != Addressing::Implicit) {
-        cerr << "Unexpected addressing mode in CLC: " << int(addr_mode) << "\n";
-    }
+CPU::clc() {
     cpu_status.reset(Carry);
 }
 
 /// CLD - Clear decimal mode flag
 void 
-CPU::cld(Addressing addr_mode) {
-    if (addr_mode != Addressing::Implicit) {
-        cerr << "Unexpected addressing mode in CLD: " << int(addr_mode) << "\n";
-    }
+CPU::cld() {
     cpu_status.reset(DecimalMode);
 }
 
 /// CLI - Clear interrupt disable flag
 void 
-CPU::cli(Addressing addr_mode) {
-    if (addr_mode != Addressing::Implicit) {
-        cerr << "Unexpected addressing mode in CLI: " << int(addr_mode) << "\n";
-    }
+CPU::cli() {
     cpu_status.reset(InterruptDisable);
 }
 
 /// CLV - Clear overflow flag
 void 
-CPU::clv(Addressing addr_mode) {
-    if (addr_mode != Addressing::Implicit) {
-        cerr << "Unexpected addressing mode in CLV: " << int(addr_mode) << "\n";
-    }
+CPU::clv() {
     cpu_status.reset(Overflow);
 }
 
 /// SEC - Set carry flag
 void 
-CPU::sec(Addressing addr_mode) {
-    if (addr_mode != Addressing::Implicit) {
-        cerr << "Unexpected addressing mode in SEC: " << int(addr_mode) << "\n";
-    }
+CPU::sec() {
     cpu_status.set(Carry);
 }
 
 /// SED - Set decimal mode flag
 void 
-CPU::sed(Addressing addr_mode) {
-    if (addr_mode != Addressing::Implicit) {
-        cerr << "Unexpected addressing mode in SED: " << int(addr_mode) << "\n";
-    }
+CPU::sed() {
     cpu_status.set(DecimalMode);
 }
 
 /// SEI - Set interrupt disable flag
 void 
-CPU::sei(Addressing addr_mode) {
-    if (addr_mode != Addressing::Implicit) {
-        cerr << "Unexpected addressing mode in SEI: " << int(addr_mode) << "\n";
-    }
+CPU::sei() {
     cpu_status.set(InterruptDisable);
 }
 
@@ -808,10 +630,7 @@ CPU::sei(Addressing addr_mode) {
  ********************/
 /// BRK - Force an interrupt
 void 
-CPU::brk(Addressing addr_mode) {
-    if (addr_mode != Addressing::Implicit) {
-        cerr << "Unexpected addressing mode in BRK: " << int(addr_mode) << "\n";
-    }
+CPU::brk() {
     // TODO: Is this how much I should increment PC?
     program_counter += 2;
     stack_push(get_pch());
@@ -828,37 +647,13 @@ CPU::brk(Addressing addr_mode) {
 
 /// NOP - No Operation
 void 
-CPU::nop(Addressing addr_mode) {
-    switch (addr_mode) {
-    case(Addressing::Implicit):
-        // Nothing.
-        break;
-    case(Addressing::Immediate):
-        fetch_with(Addressing::Immediate);
-        break;
-    case(Addressing::ZeroPage):
-        fetch_with(Addressing::ZeroPage);
-        break;
-    case(Addressing::ZeroPageX):
-        fetch_with(Addressing::ZeroPageX);
-        break;
-    case(Addressing::Absolute):
-        fetch_with(Addressing::Absolute);
-        break;
-    case(Addressing::AbsoluteX):
-        fetch_with(Addressing::AbsoluteX);
-        break;
-    default:
-        cerr << "Unexpected addressing mode in NOP: " << int(addr_mode) << "\n";
-    }
+CPU::nop() {
+    // Nothing.
 }
 
 /// RTI - Return from Interrupt
 void
-CPU::rti(Addressing addr_mode) {
-    if (addr_mode != Addressing::Implicit) {
-        cerr << "Unexpected addressing mode in RTI: " << int(addr_mode) << "\n";
-    }
+CPU::rti() {
     cpu_status = stack_pop();
     cpu_status.set(Expansion);
     uint16_t pcl = stack_pop();

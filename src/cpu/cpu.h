@@ -1,45 +1,12 @@
-// cpu.h : Emulates the actions of the 6502 CPU in the NES.
+// cpu.h : Emulates the 6502 CPU.
 //
 #pragma once
 
-#include "../ram/ram.h"
+#include "ram.h"
+#include "error.h"
 
 #include <bitset>
 #include <cstdint>
-#include <functional>
-#include <iostream>
-#include <stdio.h>
-#include <unordered_map>
-
-#include <fstream>
-#include <iomanip>
-
-class RAM;
-
-/***************************************************
-     _______________
-    |N|V| |B|D|I|Z|C| -- Processor Status Register
-     | | | | | | | |
-     | | | | | | | +---- Carry
-     | | | | | | +------ Zero Result
-     | | | | | +-------- Interrupt Disable
-     | | | | +---------- Decimal Mode
-     | | | +------------ Break Command
-     | | +-------------- Expansion
-     | +---------------- Overflow
-     +------------------ Negative Result
-****************************************************/
-enum Status {
-    // 0-7 represents bit position for std::bitset.
-    Carry				= 0,	
-    Zero				= 1,
-    InterruptDisable	= 2,
-    DecimalMode			= 3,
-    BreakCommand		= 4,
-    Expansion			= 5,	// Not used.
-    Overflow			= 6,
-    Negative	 		= 7,
-};
 
 /// Possible addressing modes.
 enum class Addressing {
@@ -60,43 +27,44 @@ enum class Addressing {
 
 class CPU {
 public:
-    // TODO: Force default constructor to throw an error.
-    CPU() = default;
-    CPU(RAM *ram);
+    CPU(RAM *r);
     ~CPU() = default;
 
+    // TODO: Remove?
     /// Returns CPU status.
-    std::bitset<8> get_cpu_status() const { return cpu_status; }
+    // std::bitset<8> get_cpu_status() const { return cpu_status; }
 
+    // Most comments taken from:
+    // http://obelisk.me.uk/6502/reference.html
     /*************************
      * Load/Store Operations *
      *************************/
     /// LDA - Load Accumulator
     /// Loads a byte of memory into the accumulator setting the zero and
     /// negative flags as appropriate.
-    void lda(Addressing addr_mode);
+    void lda(const uint8_t val);
 
     /// LDX - Load X Register
     /// Loads a byte of memory into the X register setting the zero and
     /// negative flags as appropriate.
-    void ldx(Addressing addr_mode);
+    void ldx(const uint8_t val);
 
     /// LDY - Load Y Register
     /// Loads a byte of memory into the Y register setting the zero and
     /// negative flags as appropriate.
-    void ldy(Addressing addr_mode);
+    void ldy(const uint8_t val);
 
     /// STA - Store Accumulator
     /// Stores the contents of the accumulator into memory.
-    void sta(Addressing addr_mode);
+    void sta(const uint16_t addr);
 
     /// STX - Store X Register
     /// Stores the contents of the X register into memory.
-    void stx(Addressing addr_mode);
+    void stx(const uint16_t addr);
 
     /// STY - Store Y Register
     /// Stores the contents of the Y register into memory.
-    void sty(Addressing addr_mode);
+    void sty(const uint16_t addr);
 
     /**********************
      * Register Transfers *
@@ -104,22 +72,22 @@ public:
     /// TAX - Transfer Accumulator to X
     /// Copies the current contents of the accumulator into the X register and
     /// sets the zero and negative flags as appropriate.
-    void tax(Addressing addr_mode);
+    void tax();
 
     /// TAY - Transfer Accumulator to Y
     /// Copies the current contents of the accumulator into the Y register and
     /// sets the zero and negative flags as appropriate.
-    void tay(Addressing addr_mode);
+    void tay();
 
     /// TXA - Transfer X to Accumulator
     /// Copies the current contents of the X register into the accumulator and
     /// sets the zero and negative flags as appropriate.
-    void txa(Addressing addr_mode);
+    void txa();
 
     /// TYA - Transfer Y to Accumulator
     /// Copies the current contents of the Y register into the accumulator and
     /// sets the zero and negative flags as appropriate.
-    void tya(Addressing addr_mode);
+    void tya();
 
     /********************
      * Stack Operations *
@@ -127,29 +95,29 @@ public:
     /// TSX - Transfer stack pointer to X	
     /// Copies the current contents of the stack register into the X register
     /// and sets the zero and negative flags as appropriate.
-    void tsx(Addressing addr_mode);
+    void tsx();
 
     /// TXS - Transfer X to stack pointer	
     /// Copies the current contents of the X register into the stack register.
-    void txs(Addressing addr_mode);
+    void txs();
 
     /// PHA - Push accumulator on stack	
     /// Pushes a copy of the accumulator on to the stack.
-    void pha(Addressing addr_mode);
+    void pha();
 
     /// PHP - Push processor status on stack	
     /// Pushes a copy of the status flags on to the stack.
-    void php(Addressing addr_mode);
+    void php();
 
     /// PLA - Pull accumulator from stack	
     /// Pulls an 8 bit value from the stack and into the accumulator. The zero
     /// and negative flags are set as appropriate.
-    void pla(Addressing addr_mode);
+    void pla();
 
     /// PLP - Pull processor status from stack	
     /// Pulls an 8 bit value from the stack and into the processor flags. The
     /// flags will take on new states as determined by the value pulled.
-    void plp(Addressing addr_mode);
+    void plp();
 
     /***********
      * Logical *
@@ -157,17 +125,17 @@ public:
     /// AND - Logical AND
     /// A logical AND is performed, bit by bit, on the accumulator contents
     /// using the contents of a byte of memory.
-    void logical_and(Addressing addr_mode);
+    void logical_and(const uint8_t val);
 
     /// EOR - Exclusive OR
     /// An exclusive OR is performed, bit by bit, on the accumulator contents
     /// using the contents of a byte of memory.
-    void eor(Addressing addr_mode);
+    void eor(const uint8_t val);
 
     /// ORA - Logical Inclusive OR
     /// An inclusive OR is performed, bit by bit, on the accumulator contents
     /// using the contents of a byte of memory.
-    void ora(Addressing addr_mode);
+    void ora(const uint8_t val);
 
     /// BIT - Bit Test
     /// This instructions is used to test if one or more bits are set in a
@@ -175,7 +143,7 @@ public:
     /// in memory to set or clear the zero flag, but the result is not kept.
     /// Bits 7 and 6 of the value from memory are copied into the N and V
     /// flags.
-    void bit(Addressing addr_mode);
+    void bit(const uint8_t val);
 
     /**************
      * Arithmetic *
@@ -184,29 +152,29 @@ public:
     /// This instruction adds the contents of a memory location to the
     /// accumulator together with the carry bit. If overflow occurs the carry
     /// bit is set, this enables multiple byte addition to be performed.
-    void adc(Addressing addr_mode);
+    void adc(const uint8_t val);
 
     /// SBC - Subtract with Carry
     /// This instruction subtracts the contents of a memory location to the
     /// accumulator together with the not of the carry bit. If overflow occurs
     /// the carry bit is clear, this enables multiple byte subtraction to be
     /// performed.
-    void sbc(Addressing addr_mode);
+    void sbc(const uint8_t val);
 
     /// CMP - Compare
     /// This instruction compares the contents of the accumulator with another
     /// memory held value and sets the zero and carry flags as appropriate.
-    void cmp(Addressing addr_mode);
+    void cmp(const uint8_t val);
 
     /// CPX - Compare X Register
     /// This instruction compares the contents of the X register with another
     /// memory held value and sets the zero and carry flags as appropriate.
-    void cpx(Addressing addr_mode);
+    void cpx(const uint8_t val);
 
     /// CPY - Compare Y Register
     /// This instruction compares the contents of the Y register with another
     /// memory held value and sets the zero and carry flags as appropriate.
-    void cpy(Addressing addr_mode);
+    void cpy(const uint8_t val);
 
     /***************************
      * Increments & Decrements *
@@ -214,32 +182,32 @@ public:
     /// INC - Increment a memory location
     /// Adds one to the value held at a specified memory location setting the
     /// zero and negative flags as appropriate.
-    void inc(Addressing addr_mode);
+    void inc(const uint16_t val);
 
     /// INX - Increment the X register
     /// Adds one to the X register setting the zero and negative flags as
     /// appropriate.
-    void inx(Addressing addr_mode);
+    void inx();
 
     /// INY - Increment the Y register
     /// Adds one to the Y register setting the zero and negative flags as
     /// appropriate.
-    void iny(Addressing addr_mode);
+    void iny();
 
     /// DEC - Decrement a memory location
     /// Subtracts one from the value held at a specified memory location
     /// setting the zero and negative flags as appropriate.
-    void dec(Addressing addr_mode);
+    void dec(const uint16_t val);
 
     /// DEX - Decrement the X register
     /// Subtracts one from the X register setting the zero and negative flags
     /// as appropriate.
-    void dex(Addressing addr_mode);
+    void dex();
 
     /// DEY - Decrement the Y register
     /// Subtracts one from the Y register setting the zero and negative flags
     /// as appropriate.
-    void dey(Addressing addr_mode);
+    void dey();
 
     /**********
      * Shifts *
@@ -274,19 +242,19 @@ public:
      *****************/
     /// JMP - Jump to another location
     /// Sets the program counter to the address specified by the operand.
-    void jmp(Addressing addr_mode);
+    void jmp(const uint16_t addr);
 
     /// JSR - Jump to a subroutine
     /// The JSR instruction pushes the address (minus one) of the return point
     /// on to the stack and then sets the program counter to the target memory
     /// address.
-    void jsr(Addressing addr_mode);
+    void jsr(const uint16_t addr);
 
     /// RTS - Return from subroutine
     /// The RTS instruction is used at the end of a subroutine to return to the
     /// calling routine. It pulls the program counter (minus one) from the
     /// stack.
-    void rts(Addressing addr_mode);
+    void rts();
 
     /************
      * Branches *
@@ -294,74 +262,74 @@ public:
     /// BCC - Branch if carry flag clear
     /// If the carry flag is clear then add the relative displacement to the
     /// program counter to cause a branch to a new location.
-    void bcc(Addressing addr_mode);
+    void bcc();
 
     /// BCS - Branch if carry flag set
     /// If the carry flag is set then add the offset displacement to the
     /// program counter to cause a branch to a new location.
-    void bcs(Addressing addr_mode);
+    void bcs();
 
     /// BEQ - Branch if zero flag set
     /// If the zero flag is set then add the offset displacement to the
     /// program counter to cause a branch to a new location.
-    void beq(Addressing addr_mode);
+    void beq();
 
     /// BMI - Branch if negative flag set
     /// If the negative flag is set then add the offset displacement to the
     /// program counter to cause a branch to a new location.
-    void bmi(Addressing addr_mode);
+    void bmi();
     
     /// BNE - Branch if zero flag clear
     /// If the zero flag is clear then add the offset displacement to the
     /// program counter to cause a branch to a new location.
-    void bne(Addressing addr_mode);
+    void bne();
 
     /// BPL - Branch if negative flag clear
     /// If the negative flag is clear then add the offset displacement to the
     /// program counter to cause a branch to a new location.
-    void bpl(Addressing addr_mode);
+    void bpl();
 
     /// BVC - Branch if overflow flag clear
     /// If the overflow flag is clear then add the offset displacement to the
     /// program counter to cause a branch to a new location.
-    void bvc(Addressing addr_mode);
+    void bvc();
 
     /// BVS - Branch if overflow flag set
     /// If the overflow flag is set then add the offset displacement to the
     /// program counter to cause a branch to a new location.
-    void bvs(Addressing addr_mode);
+    void bvs();
 
     /***********************
      * Status Flag Changes *
      ***********************/
     /// CLC - Clear carry flag
     /// Set the carry flag to zero.
-    void clc(Addressing addr_mode);
+    void clc();
 
     /// CLD - Clear decimal mode flag
     /// Sets the decimal mode flag to zero.
-    void cld(Addressing addr_mode);
+    void cld();
 
     /// CLI - Clear interrupt disable flag
     /// Clears the interrupt disable flag allowing normal interrupt requests to
     /// be serviced.
-    void cli(Addressing addr_mode);
+    void cli();
 
     /// CLV - Clear overflow flag
     /// Clears the overflow flag.
-    void clv(Addressing addr_mode);
+    void clv();
 
     /// SEC - Set carry flag
     /// Set the carry flag to one.
-    void sec(Addressing addr_mode);
+    void sec();
 
     /// SED - Set decimal mode flag
     /// Set the decimal mode flag to one.
-    void sed(Addressing addr_mode);
+    void sed();
 
     /// SEI - Set interrupt disable flag
     /// Set the interrupt disable flag to one.
-    void sei(Addressing addr_mode);
+    void sei();
 
     /********************
      * System Functions *
@@ -371,22 +339,47 @@ public:
     /// program counter and processor status are pushed on the stack then the
     /// IRQ interrupt vector at $FFFE/F is loaded into the PC and the break
     /// flag in the status set to one.
-    void brk(Addressing addr_mode);
+    void brk();
 
     /// NOP - No Operation
     /// The NOP instruction causes no changes to the processor other than the
     /// normal incrementing of the program counter to the next instruction.
-    void nop(Addressing addr_mode);
+    void nop();
 
     /// RTI - Return from Interrupt
     /// The RTI instruction is used at the end of an interrupt processing
     /// routine. It pulls the processor flags from the stack followed by the
     /// program counter.
-    void rti(Addressing addr_mode);
+    void rti();
 
 private:
     // STACK_BASE + stack_pointer gives next free location on stack.
     const uint16_t STACK_BASE = 0x0100;
+
+    /***************************************************
+         _______________
+        |N|V| |B|D|I|Z|C| -- Processor Status Register
+        | | | | | | | |
+        | | | | | | | +---- Carry
+        | | | | | | +------ Zero Result
+        | | | | | +-------- Interrupt Disable
+        | | | | +---------- Decimal Mode
+        | | | +------------ Break Command
+        | | +-------------- Expansion
+        | +---------------- Overflow
+        +------------------ Negative Result
+    ****************************************************/
+    enum Status {
+        // 0-7 represents bit position for std::bitset.
+        Carry               = 0,
+        Zero                = 1,
+        InterruptDisable    = 2,
+        DecimalMode         = 3,
+        BreakCommand        = 4,
+        Expansion           = 5,
+        Overflow            = 6,
+        Negative            = 7,
+    };
 
     // Registers
     uint16_t program_counter;
@@ -399,59 +392,48 @@ private:
     // 64Kb of memory.
     RAM *ram;
 
-    // Used together with unordered_map to store all information about the
-    // opcodes.
-    struct OpCode {
-        Addressing addr_mode;
-        size_t bytes;	// Number of bytes addressing mode needs.
-        size_t cycles;	// Number of cycles.
-        std::function<void (Addressing)> op_func; // What instruction to call.
-    };
-
-    /// Initializes the hash map with all supported opcodes.
-    void data_bus();
-
-    // Holds the opcode as the key and a struct that holds all information
-    // related to the opcode as the value.
-    std::unordered_map<uint8_t, OpCode> opcodes;
+    /// Takes an opcode and decodes it by executing the correct instruction.
+    /// Returns true when an unknown opcode was found.
+    error_t decode(const uint8_t opcode);
 
     /// Pushes/pops data to/from stack.
-    void stack_push(uint8_t val);
+    void stack_push(const uint8_t val);
     uint8_t stack_pop();
 
     /// Set zero flag if given value == 0.
-    void set_zero_if(uint8_t val);
+    void set_zero_if(const uint8_t val);
     /// Set negative flag if bit 7 of val is set.
-    void set_negative_if(uint8_t val);
+    void set_negative_if(const uint8_t val);
 
     /// Returns lower and higher 8 bits from program counter, respectively.
-    constexpr uint8_t get_pcl() const { return uint8_t(program_counter | 0); }
-    constexpr uint8_t get_pch() const { return uint8_t(program_counter >> 8 | 0); }
-
+    constexpr uint8_t get_pcl() const { return uint8_t(program_counter); }
+    constexpr uint8_t get_pch() const { return uint8_t(program_counter >> 8); }
 
     /// Get data from the memory address that is in program_counter,
     /// then increments the program_counter.
     uint8_t fetch();
-    /// Uses Addressing mode to get address that can be used to get a value from memory.
+    /// Fetches value based on addressing mode.
     uint16_t fetch_with(Addressing addr_mode);
 
-    /// Prints registers. Used for debugging / testing.
-    void println() const;
-    void println(std::ofstream &my_log) const;
-    uint8_t current_op;
+    // Compares register to value and sets CPU flags appropriately.
+    void compare(const uint8_t reg, const uint8_t val);
 
     /// Addressing mode functions.
     /// Returns the address that it computes.
-    uint16_t immediate();
+    uint8_t immediate();
     uint16_t zero_page();
     uint16_t zero_page_x();
     uint16_t zero_page_y();
-    int8_t relative();
+    int8_t  relative();
     uint16_t absolute();
     uint16_t absolute_x();
     uint16_t absolute_y();
     uint16_t indirect();
     uint16_t indexed_indirect();
     uint16_t indirect_indexed();
-};
 
+    /// Prints registers. Used for debugging / testing.
+    void println() const;
+    void println(std::ofstream &my_log) const;
+    uint8_t current_op;
+};
