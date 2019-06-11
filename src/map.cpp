@@ -1,18 +1,11 @@
-// map.cpp : Reads data from ROM and maps it to RAM.
-// Definitions for mapper.h
+// map.cpp
 //
-#include "map.h"
-#include "error.h"
-
-#include <fmt/format.h>
+#include "map.hpp"
 
 #include <fstream>
 
-using namespace std;
-
-error_t
-map(const string &rom_path, RAM &ram) {
-    ifstream rom (rom_path, ifstream::binary);
+neserror_t map(const char *rom_path, uint8_t *ram) {
+    std::ifstream rom(rom_path, std::ifstream::binary);
     if (!rom.is_open()) {   // Failed to open ROM.
         return ERROR;
     }
@@ -26,15 +19,17 @@ map(const string &rom_path, RAM &ram) {
     }
 
     // PRG ROM.
-    for (size_t i = 0; rom.get(c) && i < 16384; i++) {
-        ram.write(c, 0x8000 + uint16_t(i));
-        ram.write(c, 0xC000 + uint16_t(i));
+    for (size_t i = 0; rom.get(c) && i < 16 * 1024; i++) {
+        ram[0x8000 + i] = (uint8_t) c;
+        ram[0xc000 + i] = (uint8_t) c;
     }
 
+    // TODO: This maps to vram.
     // CHR ROM
-    for (size_t i = 0; rom.get(c) && i < 8192; i++) {
-        ram.write(c, 0x6000 + uint16_t(i));
-    }
+    // for (size_t i = 0; rom.get(c) && i < 8 * 1024; i++) {
+        // ram->write(c, 0x6000 + uint16_t(i));
+        // ram[0x6000 + i] = (uint8_t) c;
+    // }
 
     rom.close();
     return SUCCESS;
