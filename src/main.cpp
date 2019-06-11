@@ -1,10 +1,10 @@
 ﻿// main.cpp : Defines the entry point for the application.
 //
-#include "cpu/cpu.h"
-#include "error.h"
-#include "map.h"
-#include "ram.h"
-#include "ppu/ppu.h"
+#include "cpu/cpu.hpp"
+#include "ppu/ppu.hpp"
+#include "map.hpp"
+#include "neserror.hpp"
+#include "nesutils.hpp"
 // TODO: Remove when done.
 // #include "sdl2-playground.h"
 
@@ -13,7 +13,9 @@
 #include <fmt/ostream.h>
 
 #include <fstream>
+#include <memory>
 #include <string>
+#include <vector>
 
 using namespace std;
 
@@ -28,15 +30,17 @@ int main(int argc, char *args[]) {
     fmt::print("Hello nes-emu.\n");
 
     // 64kB of RAM.
-    RAM ram(64 * 1024);
+    auto ram = make_unique<uint8_t[]>(64 * 1024);
 
-    if (map("../resources/nestest.nes", ram) == ERROR) {
-        fmt::print("Failed to open ROM.\n");
+    if (map("../resources/nestest.nes", ram.get()) == ERROR) {
+        fmt::print(stderr, "Failed to open ROM.\n");
         exit(1);
     }
 
-    // CPU cpu(&ram);
-    PPU ppu(&ram);
+    cpu::CPU cpu(ram.get());
+    cpu.run();
+
+    ppu::PPU ppu(ram.get());
 
     // parse_results();
     compare_logs();
