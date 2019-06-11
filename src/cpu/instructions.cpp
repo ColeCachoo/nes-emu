@@ -1,86 +1,114 @@
-// instructions.cpp : File contains only the cpu instructions.
+// instructions.cpp
 //
-#include "cpu.h"
+#include "cpu/cpu.hpp"
+#include "nesutils.hpp"
 
-#include <fmt/format.h>
+namespace cpu {
 
-using namespace std;
+/// STACK_BASE + stack_pointer gives next free location on stack.
+constexpr uint16_t STACK_BASE = 0x0100;
 
+/*----------------------------------------------------------------------------*/
+
+void CPU::stack_push(const uint8_t val)
+{
+    ram[STACK_BASE + stack_pointer] = val;
+    stack_pointer--;
+}
+
+constexpr uint8_t CPU::stack_pop()
+{
+    stack_pointer++;
+    return ram[STACK_BASE + stack_pointer];
+}
+
+void CPU::set_zero_if(const uint8_t val)
+{
+    if (val == 0) {
+        status = set_bit(status, ZERO);
+    } else {
+        status = clear_bit(status, ZERO);
+    }
+}
+
+void CPU::set_negative_if(const uint8_t val)
+{
+    if (val & NEGATIVE) {
+        status = set_bit(status, NEGATIVE);
+    } else {
+        status = clear_bit(status, NEGATIVE);
+    }
+}
+
+/*----------------------------------------------------------------------------*/
+
+// Instruction comments taken from:
+// http://obelisk.me.uk/6502/reference.html
 /*************************
  * Load/Store Operations *
  *************************/
-/// LDA - Load Accumulator
-void 
-CPU::lda(const uint8_t val) {
+void CPU::lda(const uint8_t val)
+{
     accumulator = val;
     set_zero_if(accumulator);
     set_negative_if(accumulator);
 }
 
-/// LDX - Load X Register
-void
-CPU::ldx(const uint8_t val) {
+void CPU::ldx(const uint8_t val)
+{
     x_index = val;
     set_zero_if(x_index);
     set_negative_if(x_index);
 }
 
-/// LDY - Load Y Register
-void
-CPU::ldy(const uint8_t val) {
+void CPU::ldy(const uint8_t val)
+{
     y_index = val;
     set_zero_if(y_index);
     set_negative_if(y_index);
 }
 
-/// STA - Store Accumulator
-void 
-CPU::sta(const uint16_t addr) {
-    ram->write(accumulator, addr);
+void CPU::sta(const uint16_t addr)
+{
+    ram[addr] = accumulator;
 }
 
-/// STX - Store X Register
-void 
-CPU::stx(const uint16_t addr) {
-    ram->write(x_index, addr);
+void CPU::stx(const uint16_t addr)
+{
+    ram[addr] = x_index;
 }
 
-/// STY - Store Y Register
-void 
-CPU::sty(const uint16_t addr) {
-    ram->write(y_index, addr);
+void CPU::sty(const uint16_t addr)
+{
+    ram[addr] = y_index;
 }
 
 /**********************
  * Register Transfers *
  **********************/
-/// TAX - Transfer Accumulator to X
-void 
-CPU::tax() {
+void CPU::tax()
+{
     x_index = accumulator;
     set_zero_if(x_index);
     set_negative_if(x_index);
 }
 
-/// TAY - Transfer Accumulator to Y
-void 
-CPU::tay() {
+void CPU::tay()
+{
     y_index = accumulator;
     set_zero_if(y_index);
     set_negative_if(y_index);
 }
 
-/// TXA - Transfer X to Accumulator
-void 
-CPU::txa() {
+void CPU::txa()
+{
     accumulator = x_index;
     set_zero_if(accumulator);
     set_negative_if(accumulator);
 }
 
-/// TYA - Transfer Y to Accumulator
-void 
-CPU::tya() {
+void CPU::tya()
+{
     accumulator = y_index;
     set_zero_if(accumulator);
     set_negative_if(accumulator);
@@ -89,101 +117,89 @@ CPU::tya() {
 /********************
  * Stack Operations *
  ********************/
-/// TSX - Transfer stack pointer to X	
-void 
-CPU::tsx() {
+void CPU::tsx()
+{
     x_index = stack_pointer;
     set_zero_if(x_index);
     set_negative_if(x_index);
 }
 
-/// TXS - Transfer X to stack pointer	
-void 
-CPU::txs() {
+void CPU::txs()
+{
     stack_pointer = x_index;
 }
 
-/// PHA - Push accumulator on stack	
-void 
-CPU::pha() {
+void CPU::pha()
+{
     stack_push(accumulator);
 }
 
-/// PHP - Push processor status on stack	
-void 
-CPU::php() {
-    cpu_status.set(BreakCommand);
-    cpu_status.set(Expansion);
-    stack_push(uint8_t(cpu_status.to_ulong()));
-    cpu_status.reset(BreakCommand);
+void CPU::php()
+{
+    status = set_bit(status, BREAK | EXPANSION);
+    stack_push(status);
+    status = clear_bit(status, BREAK);
 }
 
-/// PLA - Pull accumulator from stack	
-void 
-CPU::pla() {
+void CPU::pla()
+{
     accumulator = stack_pop();
     set_zero_if(accumulator);
     set_negative_if(accumulator);
 }
 
-/// PLP - Pull processor status from stack	
-void 
-CPU::plp() {
-    cpu_status = stack_pop();
-    cpu_status.reset(BreakCommand);
-    cpu_status.set(Expansion);
+void CPU::plp()
+{
+    status = stack_pop();
+    status = clear_bit(status, BREAK);
+    status = set_bit(status, EXPANSION);
 }
 
 /***********
  * Logical *
  ***********/
-/// AND - Logical AND
-void 
-CPU::logical_and(const uint8_t val) {
+void CPU::logical_and(const uint8_t val)
+{
     accumulator &= val;
     set_zero_if(accumulator);
     set_negative_if(accumulator);
 }
 
-/// EOR - Exclusive OR
-void 
-CPU::eor(const uint8_t val) {
+void CPU::eor(const uint8_t val)
+{
     accumulator ^= val;
     set_zero_if(accumulator);
     set_negative_if(accumulator);
 }
 
-/// ORA - Logical Inclusive OR
-void
-CPU::ora(const uint8_t val) {
+void CPU::ora(const uint8_t val)
+{
     accumulator |= val;
     set_zero_if(accumulator);
     set_negative_if(accumulator);
 }
 
-/// BIT - Bit Test
-void 
-CPU::bit(const uint8_t val) {
+void CPU::bit(const uint8_t val)
+{
     set_zero_if(accumulator & val);
     set_negative_if(val);
-    if (val & 0x40) {
-        cpu_status.set(Overflow);
+    if (val & OVERFLW) {
+        status = set_bit(status, OVERFLW);
     } else {
-        cpu_status.reset(Overflow);
+        status = clear_bit(status, OVERFLW);
     }
 }
 
 /**************
  * Arithmetic *
  **************/
-/// ADC - Add with Carry
-void 
-CPU::adc(const uint8_t val) {
+void CPU::adc(const uint8_t val)
+{
     // Used later to check for overflow. Needs accumulator before it gets changed.
     uint8_t old_a = accumulator;
 
     uint8_t carry_bit;
-    if (cpu_status[Carry] == 1) {
+    if (status & CARRY) {
         carry_bit = 0x01;
     } else {
         carry_bit = 0x00;
@@ -191,14 +207,14 @@ CPU::adc(const uint8_t val) {
 
     uint16_t result = accumulator + val + carry_bit;
 
-    accumulator = uint8_t(result);
+    accumulator = (uint8_t) result;
     set_zero_if(accumulator);
     set_negative_if(accumulator);
     // Set carry if 9th position bit is set.
     if (result & 0x0100) {
-        cpu_status.set(Carry);
+        status = set_bit(status, CARRY);
     } else {
-        cpu_status.reset(Carry);
+        status = clear_bit(status, CARRY);
     }
 
     // Check for overflow and set cpu_status if needed.
@@ -207,22 +223,21 @@ CPU::adc(const uint8_t val) {
     // if the result is a different bit in that position, then overflow has
     // occurred.
     if ((old_a ^ val) & 0x80) {
-        cpu_status.reset(Overflow);
+        status = clear_bit(status, OVERFLW);
     } else if ((old_a & val & 0x80) == (result & 0x80)) {
-        cpu_status.reset(Overflow);
+        status = clear_bit(status, OVERFLW);
     } else {
-        cpu_status.set(Overflow);
+        status = set_bit(status, OVERFLW);
     }
 }
 
-/// SBC - Subtract with Carry
-void 
-CPU::sbc(const uint8_t val) {
+void CPU::sbc(const uint8_t val)
+{
     // Used later to check for overflow. Needs accumulator before it gets changed.
     uint8_t old_a = accumulator;
 
     uint8_t carry_bit;
-    if (cpu_status[Carry] == 1) {
+    if (status & CARRY) {
         carry_bit = 0x01;
     } else {
         carry_bit = 0x00;
@@ -230,16 +245,16 @@ CPU::sbc(const uint8_t val) {
 
     // ~val needs to be casted or else the formula won't produce the carry bit in
     // the 9th bit position.
-    uint16_t result = accumulator + uint8_t(~val) + carry_bit;
+    uint16_t result = accumulator + ((uint8_t) ~val) + carry_bit;
 
-    accumulator = uint8_t(result);
+    accumulator = (uint8_t) result;
     set_zero_if(accumulator);
     set_negative_if(accumulator);
     // Set carry if 9th position bit is set.
     if (result & 0x0100) {
-        cpu_status.set(Carry);
+        status = set_bit(status, CARRY);
     } else {
-        cpu_status.reset(Carry);
+        status = clear_bit(status, CARRY);
     }
 
     // Check for overflow and set cpu_status if needed.
@@ -248,103 +263,90 @@ CPU::sbc(const uint8_t val) {
     // in the 8th position, and if the result is a different bit in that position,
     // then overflow has occurred.
     if ((old_a ^ (~val + carry_bit)) & 0x80) {
-        cpu_status.reset(Overflow);
+        status = clear_bit(status, OVERFLW);
     } else if ((old_a & (~val + carry_bit) & 0x80) == (result & 0x80)) {
-        cpu_status.reset(Overflow);
+        status = clear_bit(status, OVERFLW);
     } else {
-        cpu_status.set(Overflow);
+        status = set_bit(status, OVERFLW);
     }
 }
 
-void
-CPU::compare(const uint8_t reg, const uint8_t val) {
+void CPU::compare(const uint8_t reg, const uint8_t val)
+{
     if (reg >= val) {
-        cpu_status.set(Carry);
+        status = set_bit(status, CARRY);
     } else {
-        cpu_status.reset(Carry);
+        status = clear_bit(status, CARRY);
     }
 
     if (reg == val) {
-        cpu_status.set(Zero);
+        status = set_bit(status, ZERO);
     } else {
-        cpu_status.reset(Zero);
+        status = clear_bit(status, ZERO);
     }
 
-    if ((reg - val) & 0x80) {
-        cpu_status.set(Negative);
+    if ((reg - val) & NEGATIVE) {
+        status = set_bit(status, NEGATIVE);
     } else {
-        cpu_status.reset(Negative);
+        status = clear_bit(status, NEGATIVE);
     }
 }
 
-/// CMP - Compare
-void 
-CPU::cmp(const uint8_t val) {
+void CPU::cmp(const uint8_t val)
+{
     compare(accumulator, val);
 }
 
-/// CPX - Compare X Register
-void 
-CPU::cpx(const uint8_t val) {
+void CPU::cpx(const uint8_t val)
+{
     compare(x_index, val);
 }
 
-/// CPY - Compare Y Register
-void 
-CPU::cpy(const uint8_t val) {
+void CPU::cpy(const uint8_t val)
+{
     compare(y_index, val);
 }
 
 /***************************
  * Increments & Decrements *
  ***************************/
-/// INC - Increment a memory location
-void 
-CPU::inc(const uint16_t addr) {
-    uint8_t val = ram->read(addr);
-    val++;
-    ram->write(val, addr);
-    set_zero_if(val);
-    set_negative_if(val);
+void CPU::inc(const uint16_t addr)
+{
+    ram[addr]++;
+    set_zero_if(ram[addr]);
+    set_negative_if(ram[addr]);
 }
 
-/// INX - Increment the X register
-void 
-CPU::inx() {
+void CPU::inx()
+{
     x_index++;
     set_zero_if(x_index);
     set_negative_if(x_index);
 }
 
-/// INY - Increment the Y register
-void 
-CPU::iny() {
+void CPU::iny()
+{
     y_index++;
     set_zero_if(y_index);
     set_negative_if(y_index);
 }
 
-/// DEC - Decrement a memory location
-void 
-CPU::dec(const uint16_t addr) {
-    uint8_t val = ram->read(addr);
-    val--;
-    ram->write(val, addr);
-    set_zero_if(val);
-    set_negative_if(val);
+void CPU::dec(const uint16_t addr)
+{
+    ram[addr]--;
+    set_zero_if(ram[addr]);
+    set_negative_if(ram[addr]);
 }
 
-/// DEX - Decrement the X register
-void 
-CPU::dex() {
+void CPU::dex()
+{
     x_index--;
     set_zero_if(x_index);
     set_negative_if(x_index);
 }
 
-/// DEY - Decrement the Y register
-void 
-CPU::dey() {
+void CPU::dey()
+{
     y_index--;
     set_zero_if(y_index);
     set_negative_if(y_index);
@@ -353,138 +355,88 @@ CPU::dey() {
 /**********
  * Shifts *
  **********/
-/// ASL - Arithmetic Shift Left
-void 
-CPU::asl(Addressing addr_mode) {
-    uint16_t addr;
-    uint8_t val;
-    if (addr_mode == Addressing::Accumulator) {
-        addr = 0;	// Not used.
-        val = accumulator;
+void CPU::asl(uint8_t *val)
+{
+    if (*val & 0x80) {
+        status = set_bit(status, CARRY);
     } else {
-        addr = fetch_with(addr_mode);
-        val = ram->read(addr);
+        status = clear_bit(status, CARRY);
     }
 
-    cpu_status.set(Carry, val & 0x80);
-    val = val << 1;
-    set_zero_if(val);
-    set_negative_if(val);
+    *val <<= 1;
 
-    if (addr_mode == Addressing::Accumulator) {
-        accumulator = val;
-    } else {
-        ram->write(val, addr);
-    }
+    set_zero_if(*val);
+    set_negative_if(*val);
 }
 
-/// LSR - Logical Shift Right
-void 
-CPU::lsr(Addressing addr_mode) {
-    uint16_t addr;
-    uint8_t val;
-    if (addr_mode == Addressing::Accumulator) {
-        addr = 0;	// Not used.
-        val = accumulator;
+void CPU::lsr(uint8_t *val)
+{
+    if (*val & 0x01) {
+        status = set_bit(status, CARRY);
     } else {
-        addr = fetch_with(addr_mode);
-        val = ram->read(addr);
+        status = clear_bit(status, CARRY);
     }
 
-    cpu_status.set(Carry, val & 0x01);
-    val >>= 1;
-    set_zero_if(val);
-    set_negative_if(val);
+    *val >>= 1;
 
-    if (addr_mode == Addressing::Accumulator) {
-        accumulator = val;
-    } else {
-        ram->write(val, addr);
-    }
+    set_zero_if(*val);
+    set_negative_if(*val);
 }
 
-/// ROL - Rotate Left
-void 
-CPU::rol(Addressing addr_mode) {
-    uint16_t addr;
-    uint8_t val;
-    if (addr_mode == Addressing::Accumulator) {
-        addr = 0;	// Not used.
-        val = accumulator;
+void CPU::rol(uint8_t *val)
+{
+    uint8_t new_carry = *val & 0x80;
+
+    // Rotate left.
+    *val = (*val >> 7) | (*val << 1);
+
+    if (new_carry) {
+        status = set_bit(status, CARRY);
     } else {
-        addr = fetch_with(addr_mode);
-        val = ram->read(addr);
+        status = clear_bit(status, CARRY);
     }
 
-    bitset<9> v = val;
-    v = v << 1;
-    v[0] = cpu_status[Carry];
-    cpu_status.set(Carry, v[8]);
-
-    val = uint8_t(v.to_ulong());
-    set_zero_if(val);
-    set_negative_if(val);
-
-    if (addr_mode == Addressing::Accumulator) {
-        accumulator = val;
-    } else {
-        ram->write(val, addr);
-    }
+    set_zero_if(*val);
+    set_negative_if(*val);
 }
 
-/// ROR - Rotate Right
-void 
-CPU::ror(Addressing addr_mode) {
-    uint16_t addr;
-    uint8_t val;
-    if (addr_mode == Addressing::Accumulator) {
-        addr = 0;	// Not used.
-        val = accumulator;
+void CPU::ror(uint8_t *val)
+{
+    uint8_t new_carry = *val & 0x01;
+
+    // Rotate right.
+    *val = (status << 7) | (*val >> 1);
+
+    if (new_carry) {
+        status = set_bit(status, CARRY);
     } else {
-        addr = fetch_with(addr_mode);
-        val = ram->read(addr);
+        status = clear_bit(status, CARRY);
     }
 
-    bitset<9> v = val;
-    v[8] = cpu_status[Carry];
-    cpu_status.set(Carry, v[0]);
-    v = v >> 1;
-
-    val = uint8_t(v.to_ulong());
-    set_zero_if(val);
-    set_negative_if(val);
-
-    if (addr_mode == Addressing::Accumulator) {
-        accumulator = val;
-    } else {
-        ram->write(val, addr);
-    }
+    set_zero_if(*val);
+    set_negative_if(*val);
 }
 
 /*****************
  * Jumps & Calls *
  *****************/
-/// JMP - Jump to another location
-void 
-CPU::jmp(const uint16_t addr) {
+void CPU::jmp(const uint16_t addr)
+{
     program_counter = addr;
 }
 
-/// JSR - Jump to a subroutine
-void 
-CPU::jsr(const uint16_t addr) {
+void CPU::jsr(const uint16_t addr)
+{
     program_counter--;
-    stack_push(get_pch());
-    stack_push(get_pcl());
+    stack_push(high_byte(program_counter));
+    stack_push(low_byte(program_counter));
     program_counter = addr;
 }
 
-/// RTS - Return from subroutine
-void 
-CPU::rts() {
-    uint16_t pcl = stack_pop();
-    uint16_t pch = stack_pop();
-    pch <<= 8;
+void CPU::rts()
+{
+    const uint16_t pcl = stack_pop();
+    const uint16_t pch = ((uint8_t) stack_pop()) << 8;
     program_counter = (pch | pcl);
     program_counter++;
 }
@@ -492,88 +444,80 @@ CPU::rts() {
 /************
  * Branches *
  ************/
-/// BCC - Branch if carry flag clear
-void 
-CPU::bcc() {
-    if (cpu_status[Carry] == 0) {
-        int8_t offset = int8_t(fetch_with(Addressing::Relative));
+void CPU::bcc()
+{
+    if (!(status & CARRY)) {
+        int8_t offset = relative();
         program_counter += offset;
     } else {
         program_counter++;
     }
 }
 
-/// BCS - Branch if carry flag set
-void 
-CPU::bcs() {
-    if (cpu_status[Carry] == 1) {
-        int8_t offset = int8_t(fetch_with(Addressing::Relative));
+void CPU::bcs()
+{
+    if (status & CARRY) {
+        int8_t offset = relative();
         program_counter += offset;
     } else {
         program_counter++;
     }
 }
 
-/// BEQ - Branch if zero flag set
-void 
-CPU::beq() {
-    if (cpu_status[Zero] == 1) {
-        int8_t offset = int8_t(fetch_with(Addressing::Relative));
+void CPU::beq()
+{
+    if (status & ZERO) {
+        int8_t offset = relative();
         program_counter += offset;
     } else {
         program_counter++;
     }
 }
 
-/// BMI - Branch if negative flag set
-void 
-CPU::bmi() {
-    if (cpu_status[Negative] == 1) {
-        int8_t offset = int8_t(fetch_with(Addressing::Relative));
+void CPU::bmi()
+{
+    if (status & NEGATIVE) {
+        int8_t offset = relative();
         program_counter += offset;
     } else {
         program_counter++;
     }
 }
 
-/// BNE - Branch if zero flag clear
-void 
-CPU::bne() {
-    if (cpu_status[Zero] == 0) {
-        int8_t offset = int8_t(fetch_with(Addressing::Relative));
+void CPU::bne()
+{
+    if (!(status & ZERO)) {
+        int8_t offset = relative();
         program_counter += offset;
     } else {
         program_counter++;
     }
 }
 
-/// BPL - Branch if negative flag clear
-void 
-CPU::bpl() {
-    if (cpu_status[Negative] == 0) {
-        int8_t offset = int8_t(fetch_with(Addressing::Relative));
+void CPU::bpl()
+{
+    if (!(status & NEGATIVE)) {
+        int8_t offset = relative();
         program_counter += offset;
     } else {
         program_counter++;
     }
 }
 
-/// BVC - Branch if overflow flag clear
-void 
-CPU::bvc() {
-    if (cpu_status[Overflow] == 0) {
-        int8_t offset = int8_t(fetch_with(Addressing::Relative));
+void CPU::bvc()
+{
+    if (!(status & OVERFLW)) {
+        int8_t offset = relative();
         program_counter += offset;
     } else {
         program_counter++;
     }
 }
 
-/// BVS - Branch if overflow flag set
-void 
-CPU::bvs() {
-    if (cpu_status[Overflow] == 1) {
-        int8_t offset = int8_t(fetch_with(Addressing::Relative));
+void CPU::bvs()
+{
+    if (status & OVERFLW) {
+        int8_t offset = relative();
         program_counter += offset;
     } else {
         program_counter++;
@@ -583,80 +527,61 @@ CPU::bvs() {
 /***********************
  * Status Flag Changes *
  ***********************/
-/// CLC - Clear carry flag
-void 
-CPU::clc() {
-    cpu_status.reset(Carry);
+void CPU::clc()
+{
+    status = clear_bit(status, CARRY);
 }
 
-/// CLD - Clear decimal mode flag
-void 
-CPU::cld() {
-    cpu_status.reset(DecimalMode);
+void CPU::cld()
+{
+    status = clear_bit(status, DECIMAL);
 }
 
-/// CLI - Clear interrupt disable flag
-void 
-CPU::cli() {
-    cpu_status.reset(InterruptDisable);
+void CPU::cli()
+{
+    status = clear_bit(status, INTERRUPT);
 }
 
-/// CLV - Clear overflow flag
-void 
-CPU::clv() {
-    cpu_status.reset(Overflow);
+void CPU::clv()
+{
+    status = clear_bit(status, OVERFLW);
 }
 
-/// SEC - Set carry flag
-void 
-CPU::sec() {
-    cpu_status.set(Carry);
+void CPU::sec()
+{
+    status = set_bit(status, CARRY);
 }
 
-/// SED - Set decimal mode flag
-void 
-CPU::sed() {
-    cpu_status.set(DecimalMode);
+void CPU::sed()
+{
+    status = set_bit(status, DECIMAL);
 }
 
-/// SEI - Set interrupt disable flag
-void 
-CPU::sei() {
-    cpu_status.set(InterruptDisable);
+void CPU::sei()
+{
+    status = set_bit(status, INTERRUPT);
 }
 
 /********************
  * System Functions *
  ********************/
-/// BRK - Force an interrupt
-void 
-CPU::brk() {
-    // TODO: Is this how much I should increment PC?
-    program_counter += 2;
-    stack_push(get_pch());
-    stack_push(get_pcl());
-    cpu_status.set(BreakCommand);
-    cpu_status.set(Expansion);
-    stack_push(uint8_t(cpu_status.to_ulong()));
-    cpu_status.set(InterruptDisable);
-
-    uint16_t vec_low  = uint16_t(ram->read(0xfffe)) << 8;
-    uint16_t vec_high = uint16_t(ram->read(0xffff));
-    program_counter = (vec_high | vec_low);
+void CPU::brk()
+{
+    interrupt(BRK);
 }
 
-/// NOP - No Operation
-void 
-CPU::nop() {
-    // Nothing.
+void CPU::nop()
+{
+    // Nothing as program counter has already been incremented.
 }
 
-/// RTI - Return from Interrupt
-void
-CPU::rti() {
-    cpu_status = stack_pop();
-    cpu_status.set(Expansion);
-    uint16_t pcl = stack_pop();
-    uint16_t pch = stack_pop() << 8;
+void CPU::rti()
+{
+    status = stack_pop();
+    status = set_bit(status, EXPANSION);
+    const uint16_t pcl = stack_pop();
+    const uint16_t pch = stack_pop() << 8;
     program_counter = (pch | pcl);
 }
+
+}   // namespace cpu
