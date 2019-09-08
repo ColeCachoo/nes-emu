@@ -1,4 +1,4 @@
-// instructions.cc
+// instructions.cpp
 //
 #include "cpu/cpu.h"
 #include "nes-utils.h"
@@ -10,7 +10,7 @@ constexpr uint16_t STACK_BASE = 0x0100;
 
 /*----------------------------------------------------------------------------*/
 
-void CPU::stack_push(const uint8_t val)
+void CPU::stack_push(uint8_t val)
 {
     ram[STACK_BASE + stack_pointer] = val;
     stack_pointer--;
@@ -22,7 +22,7 @@ constexpr uint8_t CPU::stack_pop()
     return ram[STACK_BASE + stack_pointer];
 }
 
-void CPU::set_zero_if(const uint8_t val)
+void CPU::set_zero_if(uint8_t val)
 {
     if (val == 0) {
         status = set_bit(status, ZERO);
@@ -31,7 +31,7 @@ void CPU::set_zero_if(const uint8_t val)
     }
 }
 
-void CPU::set_negative_if(const uint8_t val)
+void CPU::set_negative_if(uint8_t val)
 {
     if (val & NEGATIVE) {
         status = set_bit(status, NEGATIVE);
@@ -47,38 +47,38 @@ void CPU::set_negative_if(const uint8_t val)
 /*************************
  * Load/Store Operations *
  *************************/
-void CPU::lda(const uint8_t val)
+void CPU::lda(uint8_t val)
 {
     accumulator = val;
     set_zero_if(accumulator);
     set_negative_if(accumulator);
 }
 
-void CPU::ldx(const uint8_t val)
+void CPU::ldx(uint8_t val)
 {
     x_index = val;
     set_zero_if(x_index);
     set_negative_if(x_index);
 }
 
-void CPU::ldy(const uint8_t val)
+void CPU::ldy(uint8_t val)
 {
     y_index = val;
     set_zero_if(y_index);
     set_negative_if(y_index);
 }
 
-void CPU::sta(const uint16_t addr)
+void CPU::sta(uint16_t addr)
 {
     ram[addr] = accumulator;
 }
 
-void CPU::stx(const uint16_t addr)
+void CPU::stx(uint16_t addr)
 {
     ram[addr] = x_index;
 }
 
-void CPU::sty(const uint16_t addr)
+void CPU::sty(uint16_t addr)
 {
     ram[addr] = y_index;
 }
@@ -158,28 +158,28 @@ void CPU::plp()
 /***********
  * Logical *
  ***********/
-void CPU::logical_and(const uint8_t val)
+void CPU::logical_and(uint8_t val)
 {
     accumulator &= val;
     set_zero_if(accumulator);
     set_negative_if(accumulator);
 }
 
-void CPU::eor(const uint8_t val)
+void CPU::eor(uint8_t val)
 {
     accumulator ^= val;
     set_zero_if(accumulator);
     set_negative_if(accumulator);
 }
 
-void CPU::ora(const uint8_t val)
+void CPU::ora(uint8_t val)
 {
     accumulator |= val;
     set_zero_if(accumulator);
     set_negative_if(accumulator);
 }
 
-void CPU::bit(const uint8_t val)
+void CPU::bit(uint8_t val)
 {
     set_zero_if(accumulator & val);
     set_negative_if(val);
@@ -193,7 +193,7 @@ void CPU::bit(const uint8_t val)
 /**************
  * Arithmetic *
  **************/
-void CPU::adc(const uint8_t val)
+void CPU::adc(uint8_t val)
 {
     // Used later to check for overflow. Needs accumulator before it gets changed.
     uint8_t old_a = accumulator;
@@ -231,7 +231,7 @@ void CPU::adc(const uint8_t val)
     }
 }
 
-void CPU::sbc(const uint8_t val)
+void CPU::sbc(uint8_t val)
 {
     // Used later to check for overflow. Needs accumulator before it gets changed.
     uint8_t old_a = accumulator;
@@ -271,7 +271,7 @@ void CPU::sbc(const uint8_t val)
     }
 }
 
-void CPU::compare(const uint8_t reg, const uint8_t val)
+void CPU::compare(uint8_t reg, uint8_t val)
 {
     if (reg >= val) {
         status = set_bit(status, CARRY);
@@ -292,17 +292,17 @@ void CPU::compare(const uint8_t reg, const uint8_t val)
     }
 }
 
-void CPU::cmp(const uint8_t val)
+void CPU::cmp(uint8_t val)
 {
     compare(accumulator, val);
 }
 
-void CPU::cpx(const uint8_t val)
+void CPU::cpx(uint8_t val)
 {
     compare(x_index, val);
 }
 
-void CPU::cpy(const uint8_t val)
+void CPU::cpy(uint8_t val)
 {
     compare(y_index, val);
 }
@@ -310,7 +310,7 @@ void CPU::cpy(const uint8_t val)
 /***************************
  * Increments & Decrements *
  ***************************/
-void CPU::inc(const uint16_t addr)
+void CPU::inc(uint16_t addr)
 {
     ram[addr]++;
     set_zero_if(ram[addr]);
@@ -331,7 +331,7 @@ void CPU::iny()
     set_negative_if(y_index);
 }
 
-void CPU::dec(const uint16_t addr)
+void CPU::dec(uint16_t addr)
 {
     ram[addr]--;
     set_zero_if(ram[addr]);
@@ -420,12 +420,12 @@ void CPU::ror(uint8_t *val)
 /*****************
  * Jumps & Calls *
  *****************/
-void CPU::jmp(const uint16_t addr)
+void CPU::jmp(uint16_t addr)
 {
     program_counter = addr;
 }
 
-void CPU::jsr(const uint16_t addr)
+void CPU::jsr(uint16_t addr)
 {
     program_counter--;
     stack_push(high_byte(program_counter));
