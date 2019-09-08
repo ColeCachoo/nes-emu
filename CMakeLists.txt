@@ -14,8 +14,8 @@ find_package(SDL2 REQUIRED)
 add_executable (
     ${PROJECT_NAME} 
     "src/main.cc"
-    "src/neserror.h"
-    "src/nesutils.h"
+    "src/nes-error.h"
+    "src/nes-utils.h"
     "src/cpu/cpu.h" 
     "src/cpu/cpu.cc" 
     "src/cpu/instructions.cc"

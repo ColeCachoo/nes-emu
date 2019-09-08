@@ -1,7 +1,7 @@
-// instructions.cpp
+// instructions.cc
 //
 #include "cpu/cpu.h"
-#include "nesutils.h"
+#include "nes-utils.h"
 
 namespace cpu {
 

@@ -1,10 +1,10 @@
-﻿// main.cpp : Defines the entry point for the application.
+﻿// main.cc : Defines the entry point for the application.
 //
 #include "cpu/cpu.h"
 #include "ppu/ppu.h"
 #include "map.h"
-#include "neserror.h"
-#include "nesutils.h"
+#include "nes-error.h"
+#include "nes-utils.h"
 // TODO: Remove when done.
 // #include "sdl2-playground.h"
 

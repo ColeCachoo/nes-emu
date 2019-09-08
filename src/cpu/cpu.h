@@ -1,8 +1,8 @@
-// cpu.hpp
+// cpu.h
 //
 #pragma once
 
-#include "neserror.h"
+#include "nes-error.h"
 
 #include <cstdint>
 #include <fstream>

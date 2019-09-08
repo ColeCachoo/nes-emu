@@ -1,4 +1,4 @@
-// map.cpp
+// map.cc
 //
 #include "map.h"
 

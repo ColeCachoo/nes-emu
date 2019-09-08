@@ -1,8 +1,8 @@
-// map.hpp : Reads data from ROM and maps it to RAM/VRAM.
+// map.h : Reads data from ROM and maps it to RAM/VRAM.
 //
 #pragma once
 
-#include "neserror.h"
+#include "nes-error.h"
 
 #include <cstdint>
 

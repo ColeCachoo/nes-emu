@@ -1,4 +1,4 @@
-// utility.hpp : Contains useful defines/functions.
+// utility.h : Contains useful defines/functions.
 //
 #pragma once
 #include <cstdint>
