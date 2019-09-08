@@ -9,7 +9,7 @@
 
 namespace cpu {
 
-enum interrupt_t {
+enum Interrupt {
     BRK,
     IRQ,
     NMI,
@@ -27,13 +27,13 @@ public:
     constexpr uint8_t fetch() { return ram[program_counter++]; }
     /// Executes given opcode.
     /// Returns ERROR if given an unknown opcode.
-    neserror_t execute(uint8_t opcode);
+    NESerror execute(uint8_t opcode);
 
     /// Triggers interrupt the given interrupt.
-    void interrupt(interrupt_t arg);
+    void interrupt(Interrupt arg);
 
     // TODO: Delete.
-    neserror_t run();
+    NESerror run();
 
     // TODO: Tell the format.
     /// Prints CPU registers.
@@ -440,4 +440,4 @@ private:
     void rti();
 };
 
-}   // namespace cpu
+}   // Namespace cpu.

@@ -18,7 +18,7 @@ public:
     void run();
     void ppu_scroll_write();
     void ppu_addr_write();
-    void per_cycle();
+    void rendering();
 
 private:
     // The 15 bit registers current and tmp are composed this way during
@@ -57,7 +57,17 @@ private:
     // 256 bytes OAM.
     std::unique_ptr<uint8_t[]> oam;
 
-    // uint8_t latch;
+    // TODO: Better names, please.
+    // Background.
+    uint16_t bk_16shf_reg[2];
+    uint8_t bk_8shf_reg[2];
+    // Sprites.
+    uint16_t spr_16shf_reg[8];
+    uint8_t spr_8shf_reg[2];
+    uint8_t latches[8];
+    uint8_t counters[8];
+
+    int current_scanline;
 };
 
-}  // namespace ppu
+}   // Namespace ppu.

@@ -584,4 +584,4 @@ void CPU::rti()
     program_counter = (pch | pcl);
 }
 
-}   // namespace cpu
+}   // Namespace cpu.

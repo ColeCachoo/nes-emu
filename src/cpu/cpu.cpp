@@ -52,7 +52,7 @@ void CPU::fprint(std::ofstream &file) const
 }
 
 // TODO: Delete this. All this should be done by the calling function.
-neserror_t CPU::run()
+NESerror CPU::run()
 {
     // FILE *my_log = fopen("E:/Documents/programming/c-lang/test/resources/my_log.txt", "w");
     std::ofstream my_log("../resources/my_log.txt", std::ofstream::out | std::ofstream::trunc);
@@ -76,7 +76,7 @@ neserror_t CPU::run()
 }
 
 // TODO: Think of good name for the argument.
-void CPU::interrupt(const interrupt_t arg)
+void CPU::interrupt(const Interrupt arg)
 {
     // TODO: Is this how much I should increment PC?
     program_counter += 2;
@@ -101,7 +101,7 @@ void CPU::interrupt(const interrupt_t arg)
     program_counter = (vec_high | vec_low);
 }
 
-neserror_t CPU::execute(const uint8_t opcode)
+NESerror CPU::execute(const uint8_t opcode)
 {
     switch (opcode) {
     case 0xa9: lda(immediate()); break;
@@ -289,4 +289,4 @@ neserror_t CPU::execute(const uint8_t opcode)
     return SUCCESS;
 }
 
-}   // namespace CPU
+}   // Namespace cpu.

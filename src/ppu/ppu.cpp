@@ -3,13 +3,12 @@
 #include "ppu/ppu.hpp"
 #include "nesutils.hpp"
 
-namespace ppu {
-
 // Detailed comments taken from:
 // http://wiki.nesdev.com/w/index.php/PPU_programmer_reference
 
-// Flags for PPUCTRL.
-enum {
+namespace ppu {
+
+enum { // Flags for PPUCTRL.
     NAMETABLE_0         = 1 << 0,   // (N) Nametable select (bit position 0).
     NAMETABLE_1         = 1 << 1,   // (N) Nametable select (bit position 1).
     INCREMENT           = 1 << 2,   // (I) Increment mode.
@@ -20,8 +19,7 @@ enum {
     NMI_ENABLE          = 1 << 7,   // (V) NMI Enable.
 };
 
-// Flags for PPUMASK.
-enum {
+enum { // Flags for PPUMASK.
     GREYSCALE           = 1 << 0,   // (G) Greyscale.
     BACKGROUND_LEFT     = 1 << 1,   // (m) Background left column enable.
     SPRITE_LEFT         = 1 << 2,   // (M) Sprite left column enable.
@@ -32,8 +30,7 @@ enum {
     COLOR_B             = 1 << 7,   // (B) Color emphasis (blue).
 };
 
-// Flags for PPUSTATUS.
-enum {
+enum { // Flags for PPUSTATUS.
     SPRITE_OVERFLOW     = 1 << 5,   // (O) Sprite overflow.
     SPRITE_HIT          = 1 << 6,   // (S) Sprite 0 hit.
     VBLANK              = 1 << 7,   // (V) vblank.
@@ -41,9 +38,6 @@ enum {
 
 PPU::PPU(uint8_t *ram)
 {
-    vram = std::make_unique<uint8_t[]>(16 * 1024);
-    oam = std::make_unique<uint8_t[]>(256);
-
     ppu_ctrl    = &ram[0x2000];
     ppu_mask    = &ram[0x2001];
     ppu_status  = &ram[0x2002];
@@ -63,6 +57,9 @@ PPU::PPU(uint8_t *ram)
     *ppu_addr    = 0x00;
     *ppu_data    = 0x00;
     *oam_dma     = 0x00;
+
+    vram = std::make_unique<uint8_t[]>(16 * 1024);
+    oam = std::make_unique<uint8_t[]>(256);
 }
 
 void PPU::fetch()
@@ -73,6 +70,7 @@ void PPU::fetch()
     } else {
         *ppu_addr += 1;
     }
+
 }
 
 void PPU::run()
@@ -111,9 +109,15 @@ void PPU::ppu_addr_write()
     write_toggle = !write_toggle;
 }
 
-void PPU::per_cycle()
+void PPU::rendering()
 {
-
+    // TODO: Fetch bit from 4 background shift registers.
+    bk_16shf_reg[0] >>= 1;
+    bk_16shf_reg[1] >>= 1;
+    bk_8shf_reg[0] >>= 1;
+    bk_8shf_reg[1] >>= 1;
+    // TODO: Every 8 cycles/shifts, load new data into these registers.
+    
 }
 
-}   // namespace ppu
+}   // Namespace ppu.
