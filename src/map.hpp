@@ -8,4 +8,4 @@
 
 /// Maps the rom to RAM.
 /// Returns true if error occurred, else returns false.
-neserror_t map(const char *rom_path, uint8_t *ram);
+NESerror map(const char *rom_path, uint8_t *ram);
