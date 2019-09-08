@@ -76,7 +76,7 @@ NESerror CPU::run()
 }
 
 // TODO: Think of good name for the argument.
-void CPU::interrupt(const Interrupt arg)
+void CPU::interrupt(Interrupt arg)
 {
     // TODO: Is this how much I should increment PC?
     program_counter += 2;
@@ -101,7 +101,7 @@ void CPU::interrupt(const Interrupt arg)
     program_counter = (vec_high | vec_low);
 }
 
-NESerror CPU::execute(const uint8_t opcode)
+NESerror CPU::execute(uint8_t opcode)
 {
     switch (opcode) {
     case 0xa9: lda(immediate()); break;
