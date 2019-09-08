@@ -56,16 +56,15 @@ private:
         | +---------------- Overflow
         +------------------ Negative Result
     ****************************************************/
-    enum {  // CPU status flags.
-        CARRY       = 1 << 0,
-        ZERO        = 1 << 1,
-        INTERRUPT   = 1 << 2,
-        DECIMAL     = 1 << 3,
-        BREAK       = 1 << 4,
-        EXPANSION   = 1 << 5,
-        OVERFLW     = 1 << 6,
-        NEGATIVE    = 1 << 7,
-    };
+    // CPU status flags.
+    static constexpr uint8_t CARRY       = 1 << 0;
+    static constexpr uint8_t ZERO        = 1 << 1;
+    static constexpr uint8_t INTERRUPT   = 1 << 2;
+    static constexpr uint8_t DECIMAL     = 1 << 3;
+    static constexpr uint8_t BREAK       = 1 << 4;
+    static constexpr uint8_t EXPANSION   = 1 << 5;
+    static constexpr uint8_t OVERFLW     = 1 << 6;
+    static constexpr uint8_t NEGATIVE    = 1 << 7;
 
     // Registers
     uint16_t program_counter;
