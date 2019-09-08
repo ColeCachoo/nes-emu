@@ -1,7 +1,7 @@
 // instructions.cpp
 //
-#include "cpu/cpu.hpp"
-#include "nesutils.hpp"
+#include "cpu/cpu.h"
+#include "nesutils.h"
 
 namespace cpu {
 

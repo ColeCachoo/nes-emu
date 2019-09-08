@@ -1,6 +1,6 @@
 // map.cpp
 //
-#include "map.hpp"
+#include "map.h"
 
 #include <fstream>
 

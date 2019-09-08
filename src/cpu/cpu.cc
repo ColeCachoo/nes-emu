@@ -1,7 +1,7 @@
 // cpu.cpp : Contains public functions.
 //
-#include "cpu.hpp"
-#include "nesutils.hpp"
+#include "cpu.h"
+#include "nesutils.h"
 
 #include <fmt/format.h>
 #include <fmt/ostream.h>

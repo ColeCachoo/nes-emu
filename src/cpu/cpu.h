@@ -2,7 +2,7 @@
 //
 #pragma once
 
-#include "neserror.hpp"
+#include "neserror.h"
 
 #include <cstdint>
 #include <fstream>

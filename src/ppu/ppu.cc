@@ -1,7 +1,7 @@
 // ppu.cpp
 //
-#include "ppu/ppu.hpp"
-#include "nesutils.hpp"
+#include "ppu/ppu.h"
+#include "nesutils.h"
 
 // Detailed comments taken from:
 // http://wiki.nesdev.com/w/index.php/PPU_programmer_reference

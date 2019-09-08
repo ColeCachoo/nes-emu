@@ -13,20 +13,20 @@ find_package(SDL2 REQUIRED)
 
 add_executable (
     ${PROJECT_NAME} 
-    "src/main.cpp"
-    "src/neserror.hpp"
-    "src/nesutils.hpp"
-    "src/cpu/cpu.hpp" 
-    "src/cpu/cpu.cpp" 
-    "src/cpu/instructions.cpp"
-    "src/map.hpp"
-    "src/map.cpp" 
-    "src/ppu/ppu.hpp"
-    "src/ppu/ppu.cpp"
+    "src/main.cc"
+    "src/neserror.h"
+    "src/nesutils.h"
+    "src/cpu/cpu.h" 
+    "src/cpu/cpu.cc" 
+    "src/cpu/instructions.cc"
+    "src/map.h"
+    "src/map.cc" 
+    "src/ppu/ppu.h"
+    "src/ppu/ppu.cc"
 )
     # "src/sdl2-playground.cpp"
     # "src/sdl2-playground.h"
-    # "src/ram.hpp"
+    # "src/ram.h"
 
 target_include_directories(${PROJECT_NAME} PRIVATE "${CMAKE_CURRENT_LIST_DIR}/src")
 
@@ -37,7 +37,8 @@ target_link_libraries(${PROJECT_NAME} SDL2::SDL2 SDL2::SDL2main)
 target_compile_features(${PROJECT_NAME} PRIVATE cxx_std_17)
 
 if(CMAKE_CXX_COMPILER_ID STREQUAL "GNU")
-    target_compile_options(nes-emu PRIVATE -pedantic -Wall -Wextra -O2)
+    # target_compile_options(nes-emu PRIVATE -pedantic -Wall -Wextra -O2)
+    target_compile_options(nes-emu PRIVATE -pedantic -Wall -Wextra)
 endif()
 
 # enable_testing()
