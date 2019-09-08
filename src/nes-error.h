@@ -2,6 +2,6 @@
 //
 #pragma once
 
-using NESerror = bool;
-constexpr bool ERROR = true;
-constexpr bool SUCCESS = false;
+using NESerror = int;
+constexpr bool ERROR = 1;
+constexpr bool SUCCESS = 0;
