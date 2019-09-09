@@ -3,5 +3,5 @@
 #pragma once
 
 using NESerror = int;
-constexpr bool ERROR = 1;
-constexpr bool SUCCESS = 0;
+constexpr int ERROR = 1;
+constexpr int SUCCESS = 0;
