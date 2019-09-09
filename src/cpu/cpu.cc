@@ -75,8 +75,7 @@ NESerror CPU::run()
     return SUCCESS;
 }
 
-// TODO: Think of good name for the argument.
-void CPU::interrupt(Interrupt arg)
+void CPU::interrupt(Interrupt interr)
 {
     // TODO: Is this how much I should increment PC?
     program_counter += 2;
@@ -88,7 +87,7 @@ void CPU::interrupt(Interrupt arg)
 
     uint16_t addr_low = 0;
     uint16_t addr_high = 0;
-    if (arg == IRQ || arg == BRK) {
+    if (interr == IRQ || interr == BRK) {
         addr_low  = 0xfffe;
         addr_high = 0xffff;
     } else {    // NMI/RESET
