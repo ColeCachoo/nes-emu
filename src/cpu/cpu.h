@@ -24,13 +24,13 @@ public:
     ~CPU() = default;
 
     /// Returns value at address given by program counter.
-    constexpr uint8_t fetch() { return ram[program_counter++]; }
+    inline uint8_t fetch() { return ram[program_counter++]; }
     /// Executes given opcode.
     /// Returns ERROR if given an unknown opcode.
     NESerror execute(uint8_t opcode);
 
     /// Triggers interrupt the given interrupt.
-    void interrupt(Interrupt arg);
+    void interrupt(Interrupt interr);
 
     // TODO: Delete.
     NESerror run();
@@ -41,7 +41,6 @@ public:
 
     /// Same as print() but to a file.
     void fprint(std::ofstream &file) const;
-
 
 private:
     /***************************************************
@@ -66,6 +65,9 @@ private:
     static constexpr uint8_t OVERFLW     = 1 << 6;
     static constexpr uint8_t NEGATIVE    = 1 << 7;
 
+    /// STACK_BASE + stack_pointer gives next free location on stack.
+    static constexpr uint16_t STACK_BASE = 0x0100;
+
     // Registers
     uint16_t program_counter;
     uint8_t stack_pointer;
@@ -84,35 +86,35 @@ private:
      ******************************/
     // Returns address or value that is computed by chosen address mode.
     //
-    constexpr int8_t  relative()            { return int8_t(fetch()); }
-    constexpr uint8_t immediate()           { return fetch(); }
-    constexpr uint8_t *get_accumulator()    { return &accumulator; }
-    constexpr uint16_t zero_page()          { return fetch(); }
-    constexpr uint16_t zero_page_x()        { return (x_index + fetch()) % 256; }
-    constexpr uint16_t zero_page_y()        { return (y_index + fetch()) % 256; }
+    inline int8_t  relative()            { return int8_t(fetch()); }
+    inline uint8_t immediate()           { return fetch(); }
+    inline uint8_t *get_accumulator()    { return &accumulator; }
+    inline uint16_t zero_page()          { return fetch(); }
+    inline uint16_t zero_page_x()        { return (x_index + fetch()) % 256; }
+    inline uint16_t zero_page_y()        { return (y_index + fetch()) % 256; }
 
-    constexpr uint16_t absolute()          
+    inline uint16_t absolute()          
     {
         const uint16_t addr_low  = fetch();
         const uint16_t addr_high = fetch() << 8;
         return (addr_high | addr_low);
     }
 
-    constexpr uint16_t absolute_x()        
+    inline uint16_t absolute_x()        
     {
         const uint16_t addr_low  = fetch();
         const uint16_t addr_high = fetch() << 8;
         return (addr_high | addr_low) + x_index;
     }
 
-    constexpr uint16_t absolute_y()        
+    inline uint16_t absolute_y()        
     {
         const uint16_t addr_low  = fetch();
         const uint16_t addr_high = fetch() << 8;
         return (addr_high | addr_low) + y_index;
     }
 
-    constexpr uint16_t indirect()
+    inline uint16_t indirect()
     {
         const uint16_t addr_low  = fetch();
         const uint16_t addr_high = fetch() << 8;
@@ -121,17 +123,17 @@ private:
         // indirect vector falls on a page boundary (e.g. $xxFF where xx is any value
         // from $00 to $FF). In this case fetches the LSB from $xxFF as expected but
         // takes the MSB from $xx00.
-        const uint16_t new_high = ram[addr_high | (uint8_t) (addr_low + 1)] << 8;
+        const uint16_t new_high = ram[addr_high | uint8_t((addr_low + 1))] << 8;
         return (new_high | new_low);
     }
 
-    constexpr uint16_t indexed_indirect()  
+    inline uint16_t indexed_indirect()  
     {
         const uint8_t val = fetch();
         return ram[(val + x_index) % 256] + ram[(val + x_index + 1) % 256] * 256;
     }
 
-    constexpr uint16_t indirect_indexed()  
+    inline uint16_t indirect_indexed()  
     {
         const uint8_t val = fetch();
         return ram[val] + ram[(val + 1) % 256] * 256 + y_index;
@@ -142,7 +144,7 @@ private:
     /// Pushes value to stack.
     void stack_push(uint8_t val);
     /// Pops value from stack and returns the value.
-    constexpr uint8_t stack_pop();
+    uint8_t stack_pop();
 
     /// Set zero flag if given value equals 0, otherwise clear it.
     void set_zero_if(uint8_t val);
