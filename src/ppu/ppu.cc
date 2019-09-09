@@ -8,34 +8,6 @@
 
 namespace ppu {
 
-enum { // Flags for PPUCTRL.
-    NAMETABLE_0         = 1 << 0,   // (N) Nametable select (bit position 0).
-    NAMETABLE_1         = 1 << 1,   // (N) Nametable select (bit position 1).
-    INCREMENT           = 1 << 2,   // (I) Increment mode.
-    SPRITE_TILE         = 1 << 3,   // (S) Sprite tile select.
-    BACKGROUND_TILE     = 1 << 4,   // (B) Background tile select.
-    SPRITE_SIZE         = 1 << 5,   // (H) Sprite size.
-    PPU_MASTER_SLAVE    = 1 << 6,   // (P) PPU master/slave.
-    NMI_ENABLE          = 1 << 7,   // (V) NMI Enable.
-};
-
-enum { // Flags for PPUMASK.
-    GREYSCALE           = 1 << 0,   // (G) Greyscale.
-    BACKGROUND_LEFT     = 1 << 1,   // (m) Background left column enable.
-    SPRITE_LEFT         = 1 << 2,   // (M) Sprite left column enable.
-    BACKGROUND_ENABLE   = 1 << 3,   // (b) Background enable.
-    SPRITE_ENABLE       = 1 << 4,   // (s) Sprite enable.
-    COLOR_R             = 1 << 5,   // (R) Color emphasis (red).
-    COLOR_G             = 1 << 6,   // (G) Color emphasis (green).
-    COLOR_B             = 1 << 7,   // (B) Color emphasis (blue).
-};
-
-enum { // Flags for PPUSTATUS.
-    SPRITE_OVERFLOW     = 1 << 5,   // (O) Sprite overflow.
-    SPRITE_HIT          = 1 << 6,   // (S) Sprite 0 hit.
-    VBLANK              = 1 << 7,   // (V) vblank.
-};
-
 PPU::PPU(uint8_t *ram)
 {
     ppu_ctrl    = &ram[0x2000];

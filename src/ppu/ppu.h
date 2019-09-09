@@ -67,6 +67,31 @@ private:
     uint8_t latches[8];
     uint8_t counters[8];
 
+    // Flags for PPUCTRL.
+    static constexpr uint8_t NAMETABLE_0         = 1 << 0;   // (N) Nametable select (bit position 0).
+    static constexpr uint8_t NAMETABLE_1         = 1 << 1;   // (N) Nametable select (bit position 1).
+    static constexpr uint8_t INCREMENT           = 1 << 2;   // (I) Increment mode.
+    static constexpr uint8_t SPRITE_TILE         = 1 << 3;   // (S) Sprite tile select.
+    static constexpr uint8_t BACKGROUND_TILE     = 1 << 4;   // (B) Background tile select.
+    static constexpr uint8_t SPRITE_SIZE         = 1 << 5;   // (H) Sprite size.
+    static constexpr uint8_t PPU_MASTER_SLAVE    = 1 << 6;   // (P) PPU master/slave.
+    static constexpr uint8_t NMI_ENABLE          = 1 << 7;   // (V) NMI Enable.
+
+    // Flags for PPUMASK.
+    static constexpr uint8_t GREYSCALE           = 1 << 0;   // (G) Greyscale.
+    static constexpr uint8_t BACKGROUND_LEFT     = 1 << 1;   // (m) Background left column enable.
+    static constexpr uint8_t SPRITE_LEFT         = 1 << 2;   // (M) Sprite left column enable.
+    static constexpr uint8_t BACKGROUND_ENABLE   = 1 << 3;   // (b) Background enable.
+    static constexpr uint8_t SPRITE_ENABLE       = 1 << 4;   // (s) Sprite enable.
+    static constexpr uint8_t COLOR_R             = 1 << 5;   // (R) Color emphasis (red).
+    static constexpr uint8_t COLOR_G             = 1 << 6;   // (G) Color emphasis (green).
+    static constexpr uint8_t COLOR_B             = 1 << 7;   // (B) Color emphasis (blue).
+
+    // Flags for PPUSTATUS.
+    static constexpr uint8_t SPRITE_OVERFLOW     = 1 << 5;   // (O) Sprite overflow.
+    static constexpr uint8_t SPRITE_HIT          = 1 << 6;   // (S) Sprite 0 hit.
+    static constexpr uint8_t VBLANK              = 1 << 7;   // (V) vblank.
+
     int current_scanline;
 };
 
