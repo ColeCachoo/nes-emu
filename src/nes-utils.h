@@ -27,4 +27,4 @@ constexpr uint8_t high_byte(T num) { return num >> (sizeof(T) * 8 - 8); }
 
 /// Gets lower 8 bits from given word.
 template<typename T>
-constexpr uint8_t low_byte(T num) { return (uint8_t) num; }
+constexpr uint8_t low_byte(T num) { return uint8_t(num); }

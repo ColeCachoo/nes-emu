@@ -20,15 +20,15 @@ NESerror map(const char *rom_path, uint8_t *ram) {
 
     // PRG ROM.
     for (size_t i = 0; rom.get(c) && i < 16 * 1024; i++) {
-        ram[0x8000 + i] = (uint8_t) c;
-        ram[0xc000 + i] = (uint8_t) c;
+        ram[0x8000 + i] = uint8_t(c);
+        ram[0xc000 + i] = uint8_t(c);
     }
 
     // TODO: This maps to vram.
     // CHR ROM
     // for (size_t i = 0; rom.get(c) && i < 8 * 1024; i++) {
         // ram->write(c, 0x6000 + uint16_t(i));
-        // ram[0x6000 + i] = (uint8_t) c;
+        // ram[0x6000 + i] = uint8_t(c);
     // }
 
     rom.close();

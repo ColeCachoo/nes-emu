@@ -92,7 +92,7 @@ void PPU::ppu_scroll_write()
     if (!write_toggle) { // First write.
         *ppu_scroll = (tmp_addr << 3) | finex_scroll;
     } else {    // Second write.
-        *ppu_scroll = (uint8_t) ((tmp_addr >> 2) | (tmp_addr >> 12));
+        *ppu_scroll = uint8_t(((tmp_addr >> 2) | (tmp_addr >> 12)));
     }
     write_toggle = !write_toggle;
 }
