@@ -5,9 +5,6 @@
 
 namespace cpu {
 
-/// STACK_BASE + stack_pointer gives next free location on stack.
-constexpr uint16_t STACK_BASE = 0x0100;
-
 /*----------------------------------------------------------------------------*/
 
 void CPU::stack_push(uint8_t val)
@@ -16,7 +13,7 @@ void CPU::stack_push(uint8_t val)
     stack_pointer--;
 }
 
-constexpr uint8_t CPU::stack_pop()
+uint8_t CPU::stack_pop()
 {
     stack_pointer++;
     return ram[STACK_BASE + stack_pointer];
