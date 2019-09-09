@@ -36,9 +36,11 @@ target_link_libraries(${PROJECT_NAME} SDL2::SDL2 SDL2::SDL2main)
 
 target_compile_features(${PROJECT_NAME} PRIVATE cxx_std_17)
 
-if(CMAKE_CXX_COMPILER_ID STREQUAL "GNU")
+if(CMAKE_CXX_COMPILER_ID STREQUAL "GNU" OR CMAKE_CXX_COMPILER_ID STREQUAL "Clang")
     # target_compile_options(nes-emu PRIVATE -pedantic -Wall -Wextra -O2)
     target_compile_options(nes-emu PRIVATE -pedantic -Wall -Wextra)
+elseif(CMAKE_CXX_COMPILER_ID STREQUAL "MSVC")
+    target_compile_options(nes-emu PRIVATE /W4)
 endif()
 
 # enable_testing()
