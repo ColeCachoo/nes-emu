@@ -82,30 +82,37 @@ private:
     /******************************
      * Addressing mode functions. *
      ******************************/
-    // Returns address that is computed by chosen address mode.
+    // Returns address or value that is computed by chosen address mode.
     //
-    constexpr uint16_t absolute_addr()
+    constexpr int8_t  relative()            { return int8_t(fetch()); }
+    constexpr uint8_t immediate()           { return fetch(); }
+    constexpr uint8_t *get_accumulator()    { return &accumulator; }
+    constexpr uint16_t zero_page()          { return fetch(); }
+    constexpr uint16_t zero_page_x()        { return (x_index + fetch()) % 256; }
+    constexpr uint16_t zero_page_y()        { return (y_index + fetch()) % 256; }
+
+    constexpr uint16_t absolute()          
     {
         const uint16_t addr_low  = fetch();
         const uint16_t addr_high = fetch() << 8;
         return (addr_high | addr_low);
     }
 
-    constexpr uint16_t absolute_x_addr()
+    constexpr uint16_t absolute_x()        
     {
         const uint16_t addr_low  = fetch();
         const uint16_t addr_high = fetch() << 8;
         return (addr_high | addr_low) + x_index;
     }
 
-    constexpr uint16_t absolute_y_addr()
+    constexpr uint16_t absolute_y()        
     {
         const uint16_t addr_low  = fetch();
         const uint16_t addr_high = fetch() << 8;
         return (addr_high | addr_low) + y_index;
     }
 
-    constexpr uint16_t indirect_addr()
+    constexpr uint16_t indirect()
     {
         const uint16_t addr_low  = fetch();
         const uint16_t addr_high = fetch() << 8;
@@ -118,35 +125,17 @@ private:
         return (new_high | new_low);
     }
 
-    constexpr uint16_t indexed_indirect_addr()
+    constexpr uint16_t indexed_indirect()  
     {
         const uint8_t val = fetch();
         return ram[(val + x_index) % 256] + ram[(val + x_index + 1) % 256] * 256;
     }
 
-    constexpr uint16_t indirect_indexed_addr()
+    constexpr uint16_t indirect_indexed()  
     {
         const uint8_t val = fetch();
         return ram[val] + ram[(val + 1) % 256] * 256 + y_index;
     }
-
-    constexpr uint16_t zero_page_addr()   { return fetch(); }
-    constexpr uint16_t zero_page_x_addr() { return (x_index + fetch()) % 256; }
-    constexpr uint16_t zero_page_y_addr() { return (y_index + fetch()) % 256; }
-
-    // Returns value at decoded address.
-    //
-    constexpr int8_t  relative()          { return (int8_t) fetch(); }
-    constexpr uint8_t immediate()         { return fetch(); }
-    constexpr uint8_t *get_accumulator()  { return &accumulator; }
-    constexpr uint8_t absolute()          { return ram[absolute_addr()]; }
-    constexpr uint8_t absolute_x()        { return ram[absolute_x_addr()]; }
-    constexpr uint8_t absolute_y()        { return ram[absolute_y_addr()]; }
-    constexpr uint8_t indexed_indirect()  { return ram[indexed_indirect_addr()]; }
-    constexpr uint8_t indirect_indexed()  { return ram[indirect_indexed_addr()]; }
-    constexpr uint8_t zero_page()         { return ram[zero_page_addr()]; }
-    constexpr uint8_t zero_page_x()       { return ram[zero_page_x_addr()]; }
-    constexpr uint8_t zero_page_y()       { return ram[zero_page_y_addr()]; }
 
 /*----------------------------------------------------------------------------*/
 

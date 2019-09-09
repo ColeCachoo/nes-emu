@@ -198,16 +198,17 @@ void CPU::adc(uint8_t val)
     // Used later to check for overflow. Needs accumulator before it gets changed.
     uint8_t old_a = accumulator;
 
-    uint8_t carry_bit;
-    if (status & CARRY) {
-        carry_bit = 0x01;
-    } else {
-        carry_bit = 0x00;
-    }
+    const uint8_t carry_bit = [this](){
+        if (status & CARRY) {
+            return 0x01;
+        } else {
+            return 0x00;
+        }
+    }();
 
     uint16_t result = accumulator + val + carry_bit;
 
-    accumulator = (uint8_t) result;
+    accumulator = uint8_t(result);
     set_zero_if(accumulator);
     set_negative_if(accumulator);
     // Set carry if 9th position bit is set.
@@ -236,18 +237,19 @@ void CPU::sbc(uint8_t val)
     // Used later to check for overflow. Needs accumulator before it gets changed.
     uint8_t old_a = accumulator;
 
-    uint8_t carry_bit;
-    if (status & CARRY) {
-        carry_bit = 0x01;
-    } else {
-        carry_bit = 0x00;
-    }
+    uint8_t carry_bit = [this](){
+        if (status & CARRY) {
+            return 0x01;
+        } else {
+            return 0x00;
+        }
+    }();
 
     // ~val needs to be casted or else the formula won't produce the carry bit in
     // the 9th bit position.
-    uint16_t result = accumulator + ((uint8_t) ~val) + carry_bit;
+    uint16_t result = accumulator + (uint8_t(~val)) + carry_bit;
 
-    accumulator = (uint8_t) result;
+    accumulator = uint8_t(result);
     set_zero_if(accumulator);
     set_negative_if(accumulator);
     // Set carry if 9th position bit is set.
@@ -436,7 +438,7 @@ void CPU::jsr(uint16_t addr)
 void CPU::rts()
 {
     const uint16_t pcl = stack_pop();
-    const uint16_t pch = ((uint8_t) stack_pop()) << 8;
+    const uint16_t pch = (uint8_t(stack_pop())) << 8;
     program_counter = (pch | pcl);
     program_counter++;
 }
