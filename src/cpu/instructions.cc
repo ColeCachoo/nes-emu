@@ -22,18 +22,18 @@ uint8_t CPU::stack_pop()
 void CPU::set_zero_if(uint8_t val)
 {
     if (val == 0) {
-        status = set_bit(status, ZERO);
+        status = SET_BIT(status, ZERO);
     } else {
-        status = clear_bit(status, ZERO);
+        status = CLEAR_BIT(status, ZERO);
     }
 }
 
 void CPU::set_negative_if(uint8_t val)
 {
     if (val & NEGATIVE) {
-        status = set_bit(status, NEGATIVE);
+        status = SET_BIT(status, NEGATIVE);
     } else {
-        status = clear_bit(status, NEGATIVE);
+        status = CLEAR_BIT(status, NEGATIVE);
     }
 }
 
@@ -133,9 +133,9 @@ void CPU::pha()
 
 void CPU::php()
 {
-    status = set_bit(status, BREAK | EXPANSION);
+    status = SET_BIT(status, BREAK | EXPANSION);
     stack_push(status);
-    status = clear_bit(status, BREAK);
+    status = CLEAR_BIT(status, BREAK);
 }
 
 void CPU::pla()
@@ -148,8 +148,8 @@ void CPU::pla()
 void CPU::plp()
 {
     status = stack_pop();
-    status = clear_bit(status, BREAK);
-    status = set_bit(status, EXPANSION);
+    status = CLEAR_BIT(status, BREAK);
+    status = SET_BIT(status, EXPANSION);
 }
 
 /***********
@@ -181,9 +181,9 @@ void CPU::bit(uint8_t val)
     set_zero_if(accumulator & val);
     set_negative_if(val);
     if (val & OVERFLW) {
-        status = set_bit(status, OVERFLW);
+        status = SET_BIT(status, OVERFLW);
     } else {
-        status = clear_bit(status, OVERFLW);
+        status = CLEAR_BIT(status, OVERFLW);
     }
 }
 
@@ -195,7 +195,7 @@ void CPU::adc(uint8_t val)
     // Used later to check for overflow. Needs accumulator before it gets changed.
     uint8_t old_a = accumulator;
 
-    const uint8_t carry_bit = [this](){
+    const uint8_t carry_bit = [this]() -> uint8_t {
         if (status & CARRY) {
             return 0x01;
         } else {
@@ -210,9 +210,9 @@ void CPU::adc(uint8_t val)
     set_negative_if(accumulator);
     // Set carry if 9th position bit is set.
     if (result & 0x0100) {
-        status = set_bit(status, CARRY);
+        status = SET_BIT(status, CARRY);
     } else {
-        status = clear_bit(status, CARRY);
+        status = CLEAR_BIT(status, CARRY);
     }
 
     // Check for overflow and set cpu_status if needed.
@@ -221,11 +221,11 @@ void CPU::adc(uint8_t val)
     // if the result is a different bit in that position, then overflow has
     // occurred.
     if ((old_a ^ val) & 0x80) {
-        status = clear_bit(status, OVERFLW);
+        status = CLEAR_BIT(status, OVERFLW);
     } else if ((old_a & val & 0x80) == (result & 0x80)) {
-        status = clear_bit(status, OVERFLW);
+        status = CLEAR_BIT(status, OVERFLW);
     } else {
-        status = set_bit(status, OVERFLW);
+        status = SET_BIT(status, OVERFLW);
     }
 }
 
@@ -234,7 +234,7 @@ void CPU::sbc(uint8_t val)
     // Used later to check for overflow. Needs accumulator before it gets changed.
     uint8_t old_a = accumulator;
 
-    uint8_t carry_bit = [this](){
+    uint8_t carry_bit = [this]() -> uint8_t {
         if (status & CARRY) {
             return 0x01;
         } else {
@@ -251,9 +251,9 @@ void CPU::sbc(uint8_t val)
     set_negative_if(accumulator);
     // Set carry if 9th position bit is set.
     if (result & 0x0100) {
-        status = set_bit(status, CARRY);
+        status = SET_BIT(status, CARRY);
     } else {
-        status = clear_bit(status, CARRY);
+        status = CLEAR_BIT(status, CARRY);
     }
 
     // Check for overflow and set cpu_status if needed.
@@ -262,32 +262,32 @@ void CPU::sbc(uint8_t val)
     // in the 8th position, and if the result is a different bit in that position,
     // then overflow has occurred.
     if ((old_a ^ (~val + carry_bit)) & 0x80) {
-        status = clear_bit(status, OVERFLW);
+        status = CLEAR_BIT(status, OVERFLW);
     } else if ((old_a & (~val + carry_bit) & 0x80) == (result & 0x80)) {
-        status = clear_bit(status, OVERFLW);
+        status = CLEAR_BIT(status, OVERFLW);
     } else {
-        status = set_bit(status, OVERFLW);
+        status = SET_BIT(status, OVERFLW);
     }
 }
 
 void CPU::compare(uint8_t reg, uint8_t val)
 {
     if (reg >= val) {
-        status = set_bit(status, CARRY);
+        status = SET_BIT(status, CARRY);
     } else {
-        status = clear_bit(status, CARRY);
+        status = CLEAR_BIT(status, CARRY);
     }
 
     if (reg == val) {
-        status = set_bit(status, ZERO);
+        status = SET_BIT(status, ZERO);
     } else {
-        status = clear_bit(status, ZERO);
+        status = CLEAR_BIT(status, ZERO);
     }
 
     if ((reg - val) & NEGATIVE) {
-        status = set_bit(status, NEGATIVE);
+        status = SET_BIT(status, NEGATIVE);
     } else {
-        status = clear_bit(status, NEGATIVE);
+        status = CLEAR_BIT(status, NEGATIVE);
     }
 }
 
@@ -357,9 +357,9 @@ void CPU::dey()
 void CPU::asl(uint8_t *val)
 {
     if (*val & 0x80) {
-        status = set_bit(status, CARRY);
+        status = SET_BIT(status, CARRY);
     } else {
-        status = clear_bit(status, CARRY);
+        status = CLEAR_BIT(status, CARRY);
     }
 
     *val <<= 1;
@@ -371,9 +371,9 @@ void CPU::asl(uint8_t *val)
 void CPU::lsr(uint8_t *val)
 {
     if (*val & 0x01) {
-        status = set_bit(status, CARRY);
+        status = SET_BIT(status, CARRY);
     } else {
-        status = clear_bit(status, CARRY);
+        status = CLEAR_BIT(status, CARRY);
     }
 
     *val >>= 1;
@@ -390,9 +390,9 @@ void CPU::rol(uint8_t *val)
     *val = (*val >> 7) | (*val << 1);
 
     if (new_carry) {
-        status = set_bit(status, CARRY);
+        status = SET_BIT(status, CARRY);
     } else {
-        status = clear_bit(status, CARRY);
+        status = CLEAR_BIT(status, CARRY);
     }
 
     set_zero_if(*val);
@@ -407,9 +407,9 @@ void CPU::ror(uint8_t *val)
     *val = (status << 7) | (*val >> 1);
 
     if (new_carry) {
-        status = set_bit(status, CARRY);
+        status = SET_BIT(status, CARRY);
     } else {
-        status = clear_bit(status, CARRY);
+        status = CLEAR_BIT(status, CARRY);
     }
 
     set_zero_if(*val);
@@ -528,37 +528,37 @@ void CPU::bvs()
  ***********************/
 void CPU::clc()
 {
-    status = clear_bit(status, CARRY);
+    status = CLEAR_BIT(status, CARRY);
 }
 
 void CPU::cld()
 {
-    status = clear_bit(status, DECIMAL);
+    status = CLEAR_BIT(status, DECIMAL);
 }
 
 void CPU::cli()
 {
-    status = clear_bit(status, INTERRUPT);
+    status = CLEAR_BIT(status, INTERRUPT);
 }
 
 void CPU::clv()
 {
-    status = clear_bit(status, OVERFLW);
+    status = CLEAR_BIT(status, OVERFLW);
 }
 
 void CPU::sec()
 {
-    status = set_bit(status, CARRY);
+    status = SET_BIT(status, CARRY);
 }
 
 void CPU::sed()
 {
-    status = set_bit(status, DECIMAL);
+    status = SET_BIT(status, DECIMAL);
 }
 
 void CPU::sei()
 {
-    status = set_bit(status, INTERRUPT);
+    status = SET_BIT(status, INTERRUPT);
 }
 
 /********************
@@ -577,7 +577,7 @@ void CPU::nop()
 void CPU::rti()
 {
     status = stack_pop();
-    status = set_bit(status, EXPANSION);
+    status = SET_BIT(status, EXPANSION);
     const uint16_t pcl = stack_pop();
     const uint16_t pch = stack_pop() << 8;
     program_counter = (pch | pcl);

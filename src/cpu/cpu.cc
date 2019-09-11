@@ -81,9 +81,9 @@ void CPU::interrupt(Interrupt interr)
     program_counter += 2;
     stack_push(high_byte(program_counter));
     stack_push(low_byte(program_counter));
-    status = set_bit(status, BREAK | EXPANSION);
+    status = SET_BIT(status, BREAK | EXPANSION);
     stack_push(status);
-    status = set_bit(status, INTERRUPT);
+    status = SET_BIT(status, INTERRUPT);
 
     uint16_t addr_low = 0;
     uint16_t addr_high = 0;
