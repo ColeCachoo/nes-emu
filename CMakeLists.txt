@@ -36,11 +36,14 @@ target_link_libraries(${PROJECT_NAME} SDL2::SDL2 SDL2::SDL2main)
 
 target_compile_features(${PROJECT_NAME} PRIVATE cxx_std_17)
 
-if(CMAKE_CXX_COMPILER_ID STREQUAL "GNU" OR CMAKE_CXX_COMPILER_ID STREQUAL "Clang")
+if(CMAKE_COMPILER_IS_GNUCXX OR LLVM)
     # target_compile_options(nes-emu PRIVATE -pedantic -Wall -Wextra -O2)
-    target_compile_options(nes-emu PRIVATE -pedantic -Wall -Wextra)
-elseif(CMAKE_CXX_COMPILER_ID STREQUAL "MSVC")
-    target_compile_options(nes-emu PRIVATE /W4)
+    target_compile_options(nes-emu PRIVATE -pedantic -pedantic-errors -Wall -Wextra)
+elseif(MSVC)
+    # TODO: Remove this compile option once fmt is updated.
+    # wd4275 disables a warning triggered by fmt.
+    target_compile_options(nes-emu PRIVATE /W4 /wd4275)
+    # target_compile_options(nes-emu PRIVATE /W4)
 endif()
 
 # enable_testing()
