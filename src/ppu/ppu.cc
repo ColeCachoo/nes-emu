@@ -8,7 +8,7 @@
 
 namespace ppu {
 
-PPU::PPU(uint8_t *ram, uint8_t *vram)
+PPU::PPU(uint8_t ram[], uint8_t vram[])
 {
     ppu_ctrl    = &ram[0x2000];
     ppu_mask    = &ram[0x2001];

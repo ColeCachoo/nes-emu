@@ -11,7 +11,7 @@ namespace ppu {
 
 class PPU {
 public:
-    PPU(uint8_t *ram, uint8_t *vram);
+    PPU(uint8_t ram[], uint8_t vram[]);
     ~PPU() = default;
 
     void fetch();
@@ -57,7 +57,7 @@ private:
     // 256 bytes OAM.
     std::unique_ptr<uint8_t[]> oam;
 
-    // TODO: Better names, please.
+    // TODO: Better names, please. Are these even used?
     // Background.
     uint16_t bk_16shf_reg[2];
     uint8_t bk_8shf_reg[2];

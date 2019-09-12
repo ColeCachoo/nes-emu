@@ -6,7 +6,7 @@
 
 #include <fstream>
 
-NESerror map(const std::string &rom_path, uint8_t *ram, uint8_t *vram) {
+NESerror map(const std::string &rom_path, uint8_t ram[], uint8_t vram[]) {
     std::ifstream rom(rom_path, std::ifstream::binary);
     if (!rom.is_open()) {   // Failed to open ROM.
         return ERROR;

@@ -8,7 +8,7 @@
 
 namespace cpu {
 
-CPU::CPU(uint8_t *ram)
+CPU::CPU(uint8_t ram[])
 {
     // TODO: This should get the starting address of the ROM. I'm not sure if it
     // works or not.
@@ -25,6 +25,7 @@ CPU::CPU(uint8_t *ram)
     fmt::print("Program Counter: {:X}\n", program_counter);
 }
 
+// TODO: It would be better if this just returns a string? Then I can print it how I want.
 void CPU::print() const
 {
     fmt::print("{:04X} {:02X} A:{:02X} X:{:02X} Y:{:02X} P:{:02X} SP:{:02X}\n",
