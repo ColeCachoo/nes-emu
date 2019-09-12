@@ -1,4 +1,4 @@
-// nes-error.h : nes-emu errors.
+// nes-error.h : nes-emu error codes.
 //
 #pragma once
 
