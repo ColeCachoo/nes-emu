@@ -8,17 +8,17 @@
 
 namespace cpu {
 
-CPU::CPU(uint8_t *mem)
+CPU::CPU(uint8_t *ram)
 {
     // TODO: This should get the starting address of the ROM. I'm not sure if it
     // works or not.
-    program_counter = (mem[0xfffc]) | (mem[0xfffd] << 8);
+    program_counter = (ram[0xfffc]) | (ram[0xfffd] << 8);
     stack_pointer   = 0xfd;
     accumulator     = 0x00;
     x_index         = 0x00;
     y_index         = 0x00;
     status          = 0x24;
-    ram             = mem;
+    this->ram       = ram;
 
     fmt::print("Program Counter: {:X}\n", program_counter);
     program_counter = 0xc000;

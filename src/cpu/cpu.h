@@ -18,7 +18,7 @@ enum Interrupt {
 
 class CPU {
 public:
-    CPU(uint8_t *mem);
+    CPU(uint8_t *ram);
     // CPU(CPU&) = default;
     // CPU(const CPU&) = default;
     ~CPU() = default;
