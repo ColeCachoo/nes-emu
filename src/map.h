@@ -5,7 +5,8 @@
 #include "nes-error.h"
 
 #include <cstdint>
+#include <string>
 
-/// Maps the rom to RAM.
+/// Maps the rom to RAM and VRAM.
 /// Returns true if error occurred, else returns false.
-NESerror map(const char *rom_path, uint8_t *ram);
+NESerror map(const std::string &rom_path, uint8_t *ram, uint8_t *vram);
