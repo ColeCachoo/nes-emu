@@ -8,7 +8,7 @@
 
 namespace ppu {
 
-PPU::PPU(uint8_t *ram)
+PPU::PPU(uint8_t *ram, uint8_t *vram)
 {
     ppu_ctrl    = &ram[0x2000];
     ppu_mask    = &ram[0x2001];
@@ -30,7 +30,8 @@ PPU::PPU(uint8_t *ram)
     *ppu_data    = 0x00;
     *oam_dma     = 0x00;
 
-    vram = std::make_unique<uint8_t[]>(16 * 1024);
+    // vram = std::make_unique<uint8_t[]>(16 * 1024);
+    this->vram = vram;
     oam = std::make_unique<uint8_t[]>(256);
 }
 
@@ -73,7 +74,7 @@ void PPU::ppu_addr_write()
     if (!write_toggle) { // First write.
         *ppu_addr = high_byte(tmp_addr);
         // TODO: What was this supposed to do? bit_pos(14) obviously can't be set for uint8.
-        // *ppu_addr = SET_BIT(*ppu_addr, bit_pos(14));
+        // *ppu_addr = SET_BIT(*ppu_addr, BIT_POS(14));
     }
     else {    // Second write.
         *ppu_addr = low_byte(tmp_addr);

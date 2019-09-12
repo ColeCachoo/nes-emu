@@ -31,8 +31,12 @@ int main(int argc, char *args[]) {
 
     // 64kB of RAM.
     auto ram = make_unique<uint8_t[]>(64 * 1024);
+    // 16kB of VRAM
+    auto vram = make_unique<uint8_t[]>(16 * 1024);
+    // uint8_t vram[16 * 1024];
 
-    if (map("../resources/nestest.nes", ram.get()) == ERROR) {
+    // if (map("../resources/nestest.nes", ram.get()) == ERROR) {
+    if (map("../resources/nestest.nes", ram.get(), vram.get()) == ERROR) {
         fmt::print(stderr, "Failed to open ROM.\n");
         exit(1);
     }
@@ -40,7 +44,7 @@ int main(int argc, char *args[]) {
     cpu::CPU cpu(ram.get());
     cpu.run();
 
-    ppu::PPU ppu(ram.get());
+    ppu::PPU ppu(ram.get(), vram.get());
 
     // parse_results();
     compare_logs();

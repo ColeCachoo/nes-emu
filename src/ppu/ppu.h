@@ -11,7 +11,7 @@ namespace ppu {
 
 class PPU {
 public:
-    PPU(uint8_t *ram);
+    PPU(uint8_t *ram, uint8_t *vram);
     ~PPU() = default;
 
     void fetch();
@@ -52,7 +52,7 @@ private:
     uint8_t *oam_dma;    //  |     aaaa aaaa    |  OAM DMA high address.
 
     // 16kB VRAM.
-    std::unique_ptr<uint8_t[]> vram;
+    uint8_t *vram;
 
     // 256 bytes OAM.
     std::unique_ptr<uint8_t[]> oam;
