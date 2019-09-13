@@ -1,4 +1,4 @@
-// cpu.cc : Contains public functions.
+// cpu.cpp : Contains public functions.
 //
 #include "cpu.h"
 #include "nes-utils.h"
@@ -88,10 +88,10 @@ void CPU::interrupt(Interrupt interr)
 
     uint16_t addr_low = 0;
     uint16_t addr_high = 0;
-    if (interr == IRQ || interr == BRK) {
+    if (interr == Interrupt::IRQ || interr == Interrupt::BRK) {
         addr_low  = 0xfffe;
         addr_high = 0xffff;
-    } else {    // NMI/RESET
+    } else {    // NMI/Reset
         addr_low  = 0xfffa;
         addr_high = 0xfffb;
     }

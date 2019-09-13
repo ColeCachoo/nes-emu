@@ -1,4 +1,4 @@
-﻿// main.cc : Defines the entry point for the application.
+﻿// main.cpp : Defines the entry point for the application.
 //
 #include "cpu/cpu.h"
 #include "ppu/ppu.h"
@@ -34,6 +34,11 @@ int main(int argc, char *args[]) {
     // 16kB of VRAM
     auto vram = make_unique<uint8_t[]>(16 * 1024);
     // uint8_t vram[16 * 1024];
+
+    if (ram == nullptr || vram == nullptr) {
+        fmt::print(stderr, "Failed to allocate for RAM or VRAM.\n");
+        exit(ERR_NO_ALLOC);
+    }
 
     // if (map("../resources/nestest.nes", ram.get()) == ERROR) {
     if (map("../resources/nestest.nes", ram.get(), vram.get()) == ERROR) {

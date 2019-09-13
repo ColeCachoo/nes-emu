@@ -566,7 +566,7 @@ void CPU::sei()
  ********************/
 void CPU::brk()
 {
-    interrupt(BRK);
+    interrupt(Interrupt::BRK);
 }
 
 void CPU::nop()

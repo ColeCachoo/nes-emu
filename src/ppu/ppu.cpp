@@ -1,4 +1,4 @@
-// ppu.cc
+// ppu.cpp
 //
 #include "ppu/ppu.h"
 #include "nes-utils.h"
