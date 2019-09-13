@@ -13,16 +13,16 @@ find_package(SDL2 REQUIRED)
 
 add_executable (
     ${PROJECT_NAME} 
-    "src/main.cc"
+    "src/main.cpp"
     "src/nes-error.h"
     "src/nes-utils.h"
     "src/cpu/cpu.h" 
-    "src/cpu/cpu.cc" 
-    "src/cpu/instructions.cc"
+    "src/cpu/cpu.cpp" 
+    "src/cpu/instructions.cpp"
     "src/map.h"
-    "src/map.cc" 
+    "src/map.cpp" 
     "src/ppu/ppu.h"
-    "src/ppu/ppu.cc"
+    "src/ppu/ppu.cpp"
 )
     # "src/sdl2-playground.cpp"
     # "src/sdl2-playground.h"
@@ -37,8 +37,8 @@ target_link_libraries(${PROJECT_NAME} SDL2::SDL2 SDL2::SDL2main)
 target_compile_features(${PROJECT_NAME} PRIVATE cxx_std_17)
 
 if(CMAKE_COMPILER_IS_GNUCXX OR LLVM)
-    # target_compile_options(nes-emu PRIVATE -pedantic -Wall -Wextra -O2)
-    target_compile_options(nes-emu PRIVATE -pedantic -pedantic-errors -Wall -Wextra)
+    # target_compile_options(nes-emu PRIVATE -Wall -Wextra - pedantic -O2)
+    target_compile_options(nes-emu PRIVATE -Wall -Wextra -pedantic)
 elseif(MSVC)
     # TODO: Remove this compile option once fmt is updated.
     # wd4275 disables a warning triggered by fmt.
