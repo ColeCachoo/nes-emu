@@ -48,15 +48,15 @@ void PPU::fetch()
 void PPU::run()
 {
     // Start of vertical blanking?
-    *ppu_status = SET_BIT(*ppu_status, VBLANK);
-    *ppu_ctrl = SET_BIT(*ppu_ctrl, NMI_ENABLE);
+    *ppu_status = set_bit(*ppu_status, VBLANK);
+    *ppu_ctrl = set_bit(*ppu_ctrl, NMI_ENABLE);
 
     // End of vertical blanking?
-    *ppu_ctrl = CLEAR_BIT(*ppu_ctrl, NMI_ENABLE);
+    *ppu_ctrl = clear_bit(*ppu_ctrl, NMI_ENABLE);
 
     // Read ppu_status: return old status of NMI_occurred in bit 7, then set
     // NMI_occurred to false.
-    *ppu_status = CLEAR_BIT(*ppu_status, VBLANK);
+    *ppu_status = clear_bit(*ppu_status, VBLANK);
 }
 
 void PPU::ppu_scroll_write()
@@ -74,7 +74,7 @@ void PPU::ppu_addr_write()
     if (!write_toggle) { // First write.
         *ppu_addr = high_byte(tmp_addr);
         // TODO: What was this supposed to do? bit_pos(14) obviously can't be set for uint8.
-        // *ppu_addr = SET_BIT(*ppu_addr, BIT_POS(14));
+        // *ppu_addr = set_bit(*ppu_addr, bit_pos(14));
     }
     else {    // Second write.
         *ppu_addr = low_byte(tmp_addr);
@@ -85,10 +85,10 @@ void PPU::ppu_addr_write()
 void PPU::rendering()
 {
     // TODO: Fetch bit from 4 background shift registers.
-    // bk_16shf_reg[0] >>= 1;
-    // bk_16shf_reg[1] >>= 1;
-    // bk_8shf_reg[0] >>= 1;
-    // bk_8shf_reg[1] >>= 1;
+    // bk_16shft_reg[0] >>= 1;
+    // bk_16shft_reg[1] >>= 1;
+    // bk_8shft_reg[0] >>= 1;
+    // bk_8shft_reg[1] >>= 1;
     // TODO: Every 8 cycles/shifts, load new data into these registers.
     
     // Trying to just draw a nametable.

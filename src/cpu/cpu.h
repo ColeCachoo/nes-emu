@@ -3,6 +3,7 @@
 #pragma once
 
 #include "nes-error.h"
+#include "nes-utils.h"
 
 #include <cstdint>
 #include <fstream>
@@ -56,14 +57,14 @@ private:
         +------------------ Negative Result
     ****************************************************/
     // CPU status flags.
-    static constexpr uint8_t CARRY       = 1 << 0;
-    static constexpr uint8_t ZERO        = 1 << 1;
-    static constexpr uint8_t INTERRUPT   = 1 << 2;
-    static constexpr uint8_t DECIMAL     = 1 << 3;
-    static constexpr uint8_t BREAK       = 1 << 4;
-    static constexpr uint8_t EXPANSION   = 1 << 5;
-    static constexpr uint8_t OVERFLW     = 1 << 6;
-    static constexpr uint8_t NEGATIVE    = 1 << 7;
+    static constexpr uint8_t CARRY       = 0b0000'0001; //1 << 0;
+    static constexpr uint8_t ZERO        = 0b0000'0010; //1 << 1;
+    static constexpr uint8_t INTERRUPT   = 0b0000'0100; //1 << 2;
+    static constexpr uint8_t DECIMAL     = 0b0000'1000; //1 << 3;
+    static constexpr uint8_t BREAK       = 0b0001'0000; //1 << 4;
+    static constexpr uint8_t EXPANSION   = 0b0010'0000; //1 << 5;
+    static constexpr uint8_t OVERFLW     = 0b0100'0000; //1 << 6;
+    static constexpr uint8_t NEGATIVE    = 0b1000'0000; //1 << 7;
 
     /// STACK_BASE + stack_pointer gives next free location on stack.
     static constexpr uint16_t STACK_BASE = 0x0100;
@@ -142,14 +143,38 @@ private:
 /*----------------------------------------------------------------------------*/
 
     /// Pushes value to stack.
-    void stack_push(uint8_t val);
+    inline void stack_push(uint8_t val)
+    {
+        ram[STACK_BASE + stack_pointer] = val;
+        stack_pointer--;
+    }
+
     /// Pops value from stack and returns the value.
-    uint8_t stack_pop();
+    inline uint8_t stack_pop()
+    {
+        stack_pointer++;
+        return ram[STACK_BASE + stack_pointer];
+    }
 
     /// Set zero flag if given value equals 0, otherwise clear it.
-    void set_zero_if(uint8_t val);
+    inline void set_zero_if(uint8_t val)
+    {
+        if (val == 0) {
+            status = set_bit(status, ZERO);
+        } else {
+            status = clear_bit(status, ZERO);
+        }
+    }
+
     /// Set negative flag if bit 7 of val is set, otherwise clear it.
-    void set_negative_if(uint8_t val);
+    inline void set_negative_if(uint8_t val)
+    {
+        if (val & NEGATIVE) {
+            status = set_bit(status, uint8_t(NEGATIVE));
+        } else {
+            status = clear_bit(status, NEGATIVE);
+        }
+    }
 
 /*----------------------------------------------------------------------------*/
 
