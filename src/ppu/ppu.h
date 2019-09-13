@@ -59,11 +59,11 @@ private:
 
     // TODO: Better names, please. Are these even used?
     // Background.
-    uint16_t bk_16shf_reg[2];
-    uint8_t bk_8shf_reg[2];
+    uint16_t bk_16shft_reg[2];
+    uint8_t bk_8shft_reg[2];
     // Sprites.
-    uint16_t spr_16shf_reg[8];
-    uint8_t spr_8shf_reg[2];
+    uint16_t spr_16shft_reg[8];
+    uint8_t spr_8shft_reg[2];
     uint8_t latches[8];
     uint8_t counters[8];
 
