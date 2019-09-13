@@ -53,27 +53,27 @@ void CPU::fprint(std::ofstream &file) const
 }
 
 // TODO: Delete this. All this should be done by the calling function.
-NESerror CPU::run()
+NesError CPU::run()
 {
     // FILE *my_log = fopen("E:/Documents/programming/c-lang/test/resources/my_log.txt", "w");
     std::ofstream my_log("../resources/my_log.txt", std::ofstream::out | std::ofstream::trunc);
     if (!my_log.is_open()) {
         fmt::print(stderr, "Failed to open my_log.txt\n");
-        return ERROR;
+        return NesError::CouldNotOpenFile;
     }
 
     // Run.
     for (size_t i = 0; i < 8991; i++) {
         const uint8_t opcode = fetch();
         fprint(my_log);
-        if (execute(opcode) == ERROR) {
+        if (execute(opcode) != NesError::Success) {
             fmt::print(stderr, "Unrecognized opcode: 0x{:X}\n", opcode);
             break;
         }
     }
 
     my_log.close();
-    return SUCCESS;
+    return NesError::Success;
 }
 
 void CPU::interrupt(Interrupt interr)
@@ -101,7 +101,7 @@ void CPU::interrupt(Interrupt interr)
     program_counter = (vec_high | vec_low);
 }
 
-NESerror CPU::execute(uint8_t opcode)
+NesError CPU::execute(uint8_t opcode)
 {
     switch (opcode) {
     case 0xa9: lda(immediate()); break;
@@ -284,9 +284,9 @@ NESerror CPU::execute(uint8_t opcode)
     case 0xe2: immediate();      nop(); break;
     case 0xfa: nop(); break;
     default:
-        return ERROR;
+        return NesError::InvalidOpcode;
     }
-    return SUCCESS;
+    return NesError::Success;
 }
 
 }   // Namespace cpu.

@@ -37,11 +37,11 @@ int main(int argc, char *args[]) {
 
     if (ram == nullptr || vram == nullptr) {
         fmt::print(stderr, "Failed to allocate for RAM or VRAM.\n");
-        exit(ERR_NO_ALLOC);
+        exit(1);
     }
 
     // if (map("../resources/nestest.nes", ram.get()) == ERROR) {
-    if (map("../resources/nestest.nes", ram.get(), vram.get()) == ERROR) {
+    if (map("../resources/nestest.nes", ram.get(), vram.get()) == NesError::CouldNotOpenFile) {
         fmt::print(stderr, "Failed to open ROM.\n");
         exit(1);
     }

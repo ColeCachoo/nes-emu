@@ -9,4 +9,4 @@
 
 /// Maps the rom to RAM and VRAM.
 /// Returns true if error occurred, else returns false.
-NESerror map(const std::string &rom_path, uint8_t *ram, uint8_t *vram);
+NesError map(const std::string &rom_path, uint8_t *ram, uint8_t *vram);

@@ -6,16 +6,18 @@
 
 #include <fstream>
 
-NESerror map(const std::string &rom_path, uint8_t ram[], uint8_t vram[]) {
-    std::ifstream rom(rom_path, std::ifstream::binary);
+using namespace std;
+
+NesError map(const string &rom_path, uint8_t ram[], uint8_t vram[]) {
+    ifstream rom(rom_path, ifstream::binary);
     if (!rom.is_open()) {   // Failed to open ROM.
-        return ERR_COULD_NOT_OPEN_FILE;
+        return NesError::CouldNotOpenFile;
     }
 
     int prg_rom_size = 0;
     int chr_rom_size = 0;
 
-    std::string identification = "";
+    string identification = "";
     // Skip first 15 bits.
     char c;
     for (auto i = 0; rom.get(c) && i < 15; i++) {
@@ -55,5 +57,5 @@ NESerror map(const std::string &rom_path, uint8_t ram[], uint8_t vram[]) {
         vram[0x0000 + i] = uint8_t(c);
     }
 
-    return SUCCESS;
+    return NesError::Success;
 }

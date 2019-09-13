@@ -10,11 +10,11 @@
 
 namespace cpu {
 
-enum Interrupt {
+enum class Interrupt {
     BRK,
     IRQ,
     NMI,
-    RESET,
+    Reset,
 };
 
 class CPU {
@@ -28,13 +28,13 @@ public:
     inline uint8_t fetch() { return ram[program_counter++]; }
     /// Executes given opcode.
     /// Returns ERROR if given an unknown opcode.
-    NESerror execute(uint8_t opcode);
+    NesError execute(uint8_t opcode);
 
     /// Triggers interrupt the given interrupt.
     void interrupt(Interrupt interr);
 
     // TODO: Delete.
-    NESerror run();
+    NesError run();
 
     // TODO: Tell the format.
     /// Prints CPU registers.
